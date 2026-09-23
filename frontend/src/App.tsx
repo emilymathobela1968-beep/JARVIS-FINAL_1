@@ -1,50 +1,58 @@
 import { useState, useEffect } from 'react';
 import { JarvisHeroScreen } from './components/JarvisHeroScreen';
+import { BuilderIntakeScreen } from './components/BuilderIntakeScreen';
 import { Stage2Workspace } from './components/Stage2Workspace';
+import { AppCategory } from './types';
 import { soundFX } from './utils/audio';
 
-export default function App() {
-  const [currentStage, setCurrentStage] = useState<1 | 2>(1);
-  const [activeDirective, setActiveDirective] = useState<string>('');
+type Stage = 'hero' | 'intake' | 'builder';
 
-  // Stage 1 -> Stage 2 only with a real directive from the user
-  const handleStartBuild = (directive: string) => {
+export default function App() {
+  const [stage, setStage] = useState<Stage>('hero');
+  const [activeDirective, setActiveDirective] = useState('');
+  const [appType, setAppType] = useState<AppCategory | null>(null);
+
+  const startFromHero = (directive: string) => {
     const trimmed = directive.trim();
     if (!trimmed) return;
     setActiveDirective(trimmed);
-    setCurrentStage(2);
+    setAppType(null);
+    setStage('builder');
   };
 
-  const handleReturnToStage1 = () => {
+  const startFromIntake = (directive: string, type: AppCategory) => {
+    const trimmed = directive.trim();
+    if (!trimmed) return;
+    setActiveDirective(trimmed);
+    setAppType(type);
+    setStage('builder');
+  };
+
+  const returnHome = () => {
     soundFX.playPowerDown();
-    setCurrentStage(1);
-  };
-
-  const handleNewBuild = () => {
-    soundFX.playIgnite();
-    setActiveDirective('');
-    setCurrentStage(1);
+    setStage('hero');
   };
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && e.altKey && currentStage === 2) {
-        handleReturnToStage1();
-      }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && e.altKey && stage !== 'hero') returnHome();
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentStage]);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [stage]);
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-[#030508] text-[#F5F8FF] selection:bg-[#39B8FF]/30 font-sans">
-      {currentStage === 1 ? (
-        <JarvisHeroScreen onStartBuild={handleStartBuild} />
-      ) : (
+    <div className="w-screen h-screen overflow-hidden bg-[#030508] text-[#F5F8FF] selection:bg-[#2F7CFF]/30 font-sans">
+      {stage === 'hero' && (
+        <JarvisHeroScreen onStartBuild={startFromHero} onOpenBuilder={() => setStage('intake')} />
+      )}
+      {stage === 'intake' && <BuilderIntakeScreen onBuild={startFromIntake} />}
+      {stage === 'builder' && (
         <Stage2Workspace
           initialPrompt={activeDirective}
-          onReturnToStage1={handleReturnToStage1}
-          onNewBuild={handleNewBuild}
+          appType={appType}
+          onReturnHome={returnHome}
+          onOpenIntake={() => setStage('intake')}
         />
       )}
     </div>

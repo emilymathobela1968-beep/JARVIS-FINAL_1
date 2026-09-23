@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import heroArtwork from '../assets/images/jarvis_home_hero.png';
+import { useArtworkBox, placeIn, ArtworkRect } from '../utils/artwork';
 
 /**
  * The artwork is the visual source of truth. Every live control is an overlay
@@ -8,9 +9,6 @@ import heroArtwork from '../assets/images/jarvis_home_hero.png';
  */
 const IMG_W = 1672;
 const IMG_H = 941;
-
-/** Foreground presentation scale relative to a full cover fit (cinematic pull-back). */
-const FOREGROUND_SCALE = 0.94;
 
 /** Rects measured directly from the reference artwork (image pixels). */
 const RECT = {
@@ -23,47 +21,25 @@ const RECT = {
   statusLine: { x: 402, y: 872, w: 960, h: 44 },
 } as const;
 
-type Rect = { x: number; y: number; w: number; h: number };
-
-const place = (r: Rect): React.CSSProperties => ({
-  position: 'absolute',
-  left: `${(r.x / IMG_W) * 100}%`,
-  top: `${(r.y / IMG_H) * 100}%`,
-  width: `${(r.w / IMG_W) * 100}%`,
-  height: `${(r.h / IMG_H) * 100}%`,
-});
+const place = (r: ArtworkRect): React.CSSProperties => placeIn(r, IMG_W, IMG_H);
 
 const DESTINATIONS = ['Home', 'Computer', 'Developer', 'Media', 'Builder', 'Barehands', 'System'] as const;
 
 interface JarvisHeroScreenProps {
   onStartBuild: (directive: string) => void;
+  onOpenBuilder: () => void;
 }
 
-export const JarvisHeroScreen: React.FC<JarvisHeroScreenProps> = ({ onStartBuild }) => {
+export const JarvisHeroScreen: React.FC<JarvisHeroScreenProps> = ({ onStartBuild, onOpenBuilder }) => {
   const [inputText, setInputText] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [status, setStatus] = useState<{ title: string; detail?: string } | null>(null);
 
-  // Rendered artwork box: cover the viewport without ever distorting the image.
-  const [box, setBox] = useState({ left: 0, top: 0, w: IMG_W, h: IMG_H, scale: 1 });
+  const box = useArtworkBox(IMG_W, IMG_H);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const measure = () => {
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const scale = Math.max(vw / IMG_W, vh / IMG_H) * FOREGROUND_SCALE;
-      const w = IMG_W * scale;
-      const h = IMG_H * scale;
-      setBox({ left: (vw - w) / 2, top: (vh - h) / 2, w, h, scale });
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -167,13 +143,17 @@ export const JarvisHeroScreen: React.FC<JarvisHeroScreenProps> = ({ onStartBuild
                   type="button"
                   onClick={() => {
                     setIsMenuOpen(false);
+                    if (dest === 'Builder') {
+                      onOpenBuilder();
+                      return;
+                    }
                     if (dest !== 'Home') {
                       setStatus({ title: `${dest}: not connected`, detail: 'Runtime pending integration' });
                     }
                   }}
                   className="w-full text-left transition-colors hover:bg-[#2F9DFF]/12"
                   style={{
-                    color: dest === 'Home' ? '#F5F8FF' : '#8EA6C2',
+                    color: dest === 'Home' || dest === 'Builder' ? '#F5F8FF' : '#8EA6C2',
                     padding: `${s(11)}px ${s(18)}px`,
                     fontSize: s(15),
                   }}

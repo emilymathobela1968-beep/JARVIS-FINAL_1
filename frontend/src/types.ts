@@ -59,6 +59,17 @@ export interface ExecutionEvent {
   progress?: number;
 }
 
+/** One flowing console surface: user turns, agent output, execution records. */
+export interface TimelineEntry {
+  id: string;
+  kind: 'user' | 'agent' | 'event';
+  text: string;
+  timestamp: string;
+  detail?: string;
+  evidence?: string;
+  status?: 'running' | 'completed' | 'blocked' | 'failed';
+}
+
 export interface ConversationMessage {
   id: string;
   sender: 'user' | 'jarvis' | 'system';
