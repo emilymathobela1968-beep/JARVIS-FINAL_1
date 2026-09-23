@@ -85,9 +85,22 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   // Truthful runtime state. Nothing is generated until a real operation runs.
-  const [agentState, setAgentState] = useState<AgentState>('WAITING');
+  const [agentState, setAgentState] = useState<AgentState>(initialPrompt ? 'BLOCKED' : 'WAITING');
   const [artifact, setArtifact] = useState<Artifact | null>(null);
-  const [executionEvents, setExecutionEvents] = useState<ExecutionEvent[]>([]);
+  const [executionEvents, setExecutionEvents] = useState<ExecutionEvent[]>(
+    initialPrompt
+      ? [
+          {
+            id: 'evt-directive-0',
+            title: 'Directive received',
+            detail: 'Recorded locally. No execution runtime is connected, so nothing was dispatched.',
+            timestamp: now(),
+            status: 'blocked',
+            evidence: 'runtime=none dispatch=skipped',
+          },
+        ]
+      : []
+  );
 
   const [inputVal, setInputVal] = useState('');
   const [isListening, setIsListening] = useState(false);

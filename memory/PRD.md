@@ -42,6 +42,28 @@ Retained intentionally (user decision: stability over deletion):
 
 Validation: `tsc --noEmit` clean, `vite build` clean, Stage 1 visually unchanged, Stage 2 verified empty.
 
+### Phase 2 — Hero screen source-of-truth implementation (DONE 2026-06)
+- Artwork `src/assets/images/jarvis_home_hero.png` (1672×941) is the visual foundation — never recolored,
+  never regenerated, never approximated in CSS. Old `jarvis_hero_bg.jpg` no longer used by the active app.
+- `JarvisHeroScreen.tsx` rewritten as an artwork + transparent-overlay screen. No duplicated visual chrome:
+  logo, core/radar, glass panel, avatar, Ready dot, greeting and icons all come from the artwork itself.
+- Overlay coordinate system: control rects are stored in artwork pixel space (`RECT` in the component) and
+  positioned as percentages of a JS-measured cover box (`scale = max(vw/1672, vh/941)`), so overlays stay
+  pixel-aligned across resize/zoom/any 16:9-ish resolution. Verified: overlay centers map back to the
+  artwork's measured control centers within ~1px (mic 1225,811 · send 1327,812 · attach 343,813 ·
+  keyboard 1120,813 · menu 1554,62).
+- Command input: real `<input>`; the artwork's baked placeholder is hidden by a blurred, exactly-aligned
+  slice of the artwork itself (invisible seam), with a live placeholder matched to the artwork styling.
+- MENU: dark-glass panel with the 7 existing destinations; closes on outside click and Escape. Non-Home
+  destinations report "<dest>: not connected / Runtime pending integration".
+- Microphone: no voice runtime — reports "Voice not connected / Realtime voice runtime pending integration".
+  No fake listening, no fake transcript. (Web Speech usage was removed from the hero.)
+- Attachment: real local file picker; shows the filename, uploads nothing.
+- Keyboard icon: focuses the command field. Send/Enter: empty is a no-op; a real directive goes to Stage 2.
+- Stage 1 → Stage 2: directive preserved verbatim; Builder opens with agent state
+  **BLOCKED — "No execution runtime is connected"** plus a truthful "Directive received / dispatch=skipped"
+  event. Preview stays empty.
+
 ## Backlog
 ### P0 (next)
 - New JARVIS interface implementation + real execution architecture (awaiting user's visual reference).
