@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>Jarvis.App</RootNamespace>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>false</EnableMsixTooling>
+    <WindowsPackageType>None</WindowsPackageType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4654" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3719.77" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Jarvis.Gate2\gate2_faster_whisper.py" Link="gate2_faster_whisper.py" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="RealtimeWeb\**\*">
+      <Link>RealtimeWeb\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\Barehands\**\*">
+      <Link>Barehands\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Jarvis.ApplicationCapabilities\Jarvis.ApplicationCapabilities.csproj" />
+    <ProjectReference Include="..\Jarvis.AppBuilder\Jarvis.AppBuilder.csproj" />
+    <ProjectReference Include="..\Jarvis.Contracts\Jarvis.Contracts.csproj" />
+    <ProjectReference Include="..\Jarvis.Core\Jarvis.Core.csproj" />
+    <ProjectReference Include="..\Jarvis.Computer\Jarvis.Computer.csproj" />
+    <ProjectReference Include="..\Jarvis.Developer\Jarvis.Developer.csproj" />
+    <ProjectReference Include="..\Jarvis.Infrastructure\Jarvis.Infrastructure.csproj" />
+    <ProjectReference Include="..\Jarvis.Media\Jarvis.Media.csproj" />
+    <ProjectReference Include="..\Jarvis.Realtime\Jarvis.Realtime.csproj" />
+    <ProjectReference Include="..\Jarvis.Voice\Jarvis.Voice.csproj" />
+  </ItemGroup>
+</Project>

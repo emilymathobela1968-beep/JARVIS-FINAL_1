@@ -1,0 +1,35 @@
+<Window
+    x:Class="Jarvis.App.BarehandsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Background="#050706">
+        <WebView2 x:Name="StageWebView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+
+        <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="18" Width="214" Padding="14"
+                Background="#D90E1210" BorderBrush="#48504A" BorderThickness="1" CornerRadius="8">
+            <StackPanel Spacing="10">
+                <TextBlock Text="JARVIS // BAREHANDS" FontFamily="Segoe UI Variable Display" FontWeight="SemiBold" FontSize="14" CharacterSpacing="50" />
+                <Border Height="1" Background="#48504A" />
+                <StackPanel Spacing="3">
+                    <TextBlock Text="CAMERA" Style="{StaticResource Label}" FontSize="10" />
+                    <TextBlock x:Name="CameraStatusText" Text="Starting" Foreground="#D6965A" FontSize="12" />
+                </StackPanel>
+                <StackPanel Spacing="3">
+                    <TextBlock Text="HAND TRACKING" Style="{StaticResource Label}" FontSize="10" />
+                    <TextBlock x:Name="TrackingStatusText" Text="Loading" Foreground="#A8AAA5" FontSize="12" />
+                </StackPanel>
+                <StackPanel Spacing="6" Margin="0,4,0,0">
+                    <Button Content="Cycle camera  C" Click="CycleCamera_Click" HorizontalAlignment="Stretch" />
+                    <Button Content="Reload models  R" Click="ReloadModels_Click" HorizontalAlignment="Stretch" />
+                    <Button Content="Return to Jarvis" Click="ReturnToJarvis_Click" HorizontalAlignment="Stretch" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,18" Padding="12,7"
+                Background="#C90E1210" BorderBrush="#3E4741" BorderThickness="1" CornerRadius="8" IsHitTestVisible="False">
+            <TextBlock Text="PINCH: GRAB  •  HOLD: ROTATE  •  TWO HANDS: SCALE  •  C: CAMERA  •  R: RELOAD  •  ESC: RETURN"
+                       Foreground="#D5D8D3" FontSize="11" CharacterSpacing="25" />
+        </Border>
+    </Grid>
+</Window>

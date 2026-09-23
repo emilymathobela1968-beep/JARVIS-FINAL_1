@@ -1,0 +1,10 @@
+{
+  "name": "JARVIS V2",
+  "description": "JARVIS voice interaction, Windows control, developer tools, app builder, and system telemetry.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

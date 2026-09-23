@@ -1,0 +1,99 @@
+{
+  "project": "Jarvis Windows V2",
+  "workspace": "C:\\JARVIS_CODEX\\Jarvis.Windows.V2",
+  "architectureVersion": "realtime-governed-native-ephemeral-secret-v2",
+  "lastKnownGoodGate": "Realtime physical transport and conversation are partially working; deployed/source Realtime endpoint mismatch reconciled; live Computer tool bridge physical acceptance pending",
+  "physicalRealtimeStatus": {
+    "webrtcTransport": "PASS",
+    "microphoneStreaming": "PASS",
+    "peerConnection": "PASS",
+    "remoteRealtimeAudio": "PASS",
+    "persistentConversation": "PASS",
+    "computerToolBridgePhysical": "PASS: Realtime voice physically launched and gracefully closed Word and Notepad through governed Computer control",
+    "liveTranscriptDeltas": "PENDING",
+    "bargeInPhysicalAcceptance": "PENDING"
+  },
+  "currentIssue": "Running Jarvis deployment differed from current source: deployed Realtime assembly contained /openai/v1/realtime/calls?webrtcfilter=on while current source uses the standard GA calls endpoint",
+  "nextImplementation": "Physically retest Calculator launch on the bounded verification correction. Keep the accepted Realtime, governed launch/close, Word, and Notepad architecture frozen.",
+  "physicallyAcceptedComputerBaseline": {
+    "realtimeVoiceConversation": true,
+    "wordLaunch": true,
+    "wordClose": true,
+    "notepadLaunch": true,
+    "notepadClose": true,
+    "applicationCloseByName": true,
+    "calculatorPhysicalLaunch": true,
+    "calculatorTruthfulLaunchVerification": "PENDING_PHYSICAL_RETEST"
+  },
+  "calculatorVerificationCorrection": {
+    "provenMismatch": "calc.exe launcher appears before the packaged CalculatorApp window identity becomes observable",
+    "correction": "bounded post-launch observation polling",
+    "physicalAcceptance": "PENDING"
+  },
+  "reconciledRealtimeDeployment": {
+    "sourceDeployedMismatchIdentified": true,
+    "staleFilteredDeploymentRemoved": true,
+    "effectiveCallsUrlShape": "https://<redacted-resource>/openai/v1/realtime/calls",
+    "filteredWebrtcTransportAbsent": true,
+    "jarvisRealtimeDllPath": "C:\\JARVIS_CODEX\\Jarvis.Windows.V2\\src\\Jarvis.App\\bin\\x64\\Debug\\net8.0-windows10.0.19041.0\\Jarvis.Realtime.dll",
+    "jarvisRealtimeDllModuleVersionId": "6b550cf5-fb8c-4da1-a476-c06f25a1031d",
+    "jarvisRealtimeDllLastWriteTimeUtc": "2026-09-19T08:00:10.3863119Z",
+    "launchedJarvisAppProcessId": 12848,
+    "runtimeDeploymentIdentityLogged": true,
+    "sessionUpdatedValidation": "PENDING_USER_START_REALTIME",
+    "gaFunctionCallEventObservation": "PENDING_USER_PHYSICAL_REQUEST",
+    "physicalAcceptance": "PENDING"
+  },
+  "nextPhysicalAcceptance": [
+    "Live spoken Word launch produces a Computer tool invocation in the activity/audit log",
+    "Invocation includes operation ID, launch result, and verification evidence",
+    "Word visibly opens or failure is reported from Computer evidence rather than assistant narration",
+    "Barge-in physically interrupts Jarvis"
+  ],
+  "nextProductPhase": "Premium Jarvis operating UI only after live Computer bridge physical verification closes the Realtime gate",
+  "requiredConfigurationNames": [
+    "AZURE_OPENAI_REALTIME_ENDPOINT",
+    "AZURE_OPENAI_REALTIME_DEPLOYMENT",
+    "AZURE_OPENAI_API_KEY",
+    "AZURE_OPENAI_REALTIME_TRANSCRIPTION_DEPLOYMENT"
+  ],
+  "secretStorageMechanism": "Windows Credential Manager generic credential",
+  "secretCredentialIdentifier": "Jarvis.Windows.V2/AzureOpenAIRealtime",
+  "nonSecretConfigurationLocation": "%LOCALAPPDATA%\\Jarvis.Windows.V2\\realtime.local.json",
+  "configurationProvider": "JarvisRealtimeConfigurationProvider",
+  "durableRealtimeConfigurationContinuity": {
+    "nonSecretConfigRestored": true,
+    "ordinaryBuildsMustPreserveMachineLocalConfig": true,
+    "secretRemainsInWindowsCredentialManager": true,
+    "cleanProcessEnvironmentVariablesRequired": false,
+    "configured": true,
+    "source": "local_config+windows_credential",
+    "currentGaWebrtcEndpointUnfiltered": true,
+    "integratedPhysicalAcceptance": "PENDING: same-session voice + barge-in + governed tool + Computer execution + verification"
+  },
+  "cleanProcessRealtimeEvidence": {
+    "runningJarvisAppProcessId": 20516,
+    "jarvisRealtimeDllModuleVersionId": "6b550cf5-fb8c-4da1-a476-c06f25a1031d",
+    "webViewReady": true,
+    "microphoneStreamStarted": true,
+    "peerConnectionEstablished": true,
+    "remoteAudioPathAvailable": true,
+    "dataChannelOpen": true,
+    "effectiveComputerToolsPresent": true,
+    "effectiveToolChoice": "auto",
+    "sessionValidation": "PASSED",
+    "gaFunctionCallPhysicalEvidence": "PENDING_USER_PHYSICAL_REQUEST"
+  },
+  "testResults": {
+    "buildDebugX64": "PASS: Build succeeded. 0 Warning(s). 0 Error(s).",
+    "realtime": "PASS: REALTIME_TESTS_TOTAL passed=58 failed=0",
+    "computer": "PASS: COMPUTER_TESTS_TOTAL passed=22 failed=0",
+    "developer": "PASS: DEVELOPER_TESTS_TOTAL passed=11 failed=0",
+    "media": "PASS: MEDIA_TESTS_TOTAL passed=10 failed=0",
+    "voice": "PASS: DETERMINISTIC_TOTAL passed=75 failed=0; GATE4_DETERMINISTIC_TESTS_PASSED",
+    "gate5": "PASS: GATE5_APPLICATION_TESTS passed=173 failed=0",
+    "capabilities": "PASS: 12 audited explicit requests; packaged Barehands loopback lifecycle and port release verified twice",
+    "missionIntelligence": "PASS: MISSION_INTELLIGENCE_TESTS passed=14 failed=0"
+  },
+  "updatedUtc": "2026-09-19T08:36:24.3650215Z"
+}

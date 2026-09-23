@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Platforms>x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Jarvis.Governance\Jarvis.Governance.csproj" />
+    <ProjectReference Include="..\Jarvis.Developer\Jarvis.Developer.csproj" />
+  </ItemGroup>
+</Project>

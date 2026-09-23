@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jarvis Realtime Transport</title>
+  <style>
+    html, body { margin: 0; background: #05070a; color: #d7f7ff; font-family: system-ui, sans-serif; }
+    #state { padding: 12px; font-size: 13px; }
+    audio { display: none; }
+  </style>
+</head>
+<body>
+  <div id="state">Realtime transport idle</div>
+  <audio id="remoteAudio" autoplay></audio>
+  <script>
+    const state = document.getElementById("state");
+    const remoteAudio = document.getElementById("remoteAudio");
+    let pc = null;
+    let dc = null;
+    let localStream = null;
+    let sessionId = null;
+    let assistantPlaybackActive = false;
+
+    function post(type, payload) {
+      state.textContent = type;
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage({ type, sessionId, payload: payload || null });
+      }
+    }
+
+    post("webview.ready");
+
+    async function startRealtime(config) {
+      sessionId = config.sessionId;
+      if (!config || !config.clientSecret || !config.callsEndpoint) {
+        post("fault", "missing_ephemeral_realtime_configuration");
+        return;
+      }
+
+      const audioConstraints = {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      };
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false });
+      const audioTrack = localStream.getAudioTracks()[0];
+      post("mic.stream.started", audioTrack ? audioTrack.getSettings() : {});
+
+      pc = new RTCPeerConnection();
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+      pc.ontrack = event => {
+        remoteAudio.srcObject = event.streams[0];
+        post("remote.audio.track");
+        remoteAudio.play()
+          .then(() => {
+            assistantPlaybackActive = true;
+            post("remote.audio.playing");
+          })
+          .catch(error => post("fault", "remote_audio_play_failed:" + error.message));
+      };
+
+      remoteAudio.addEventListener("playing", () => {
+        assistantPlaybackActive = true;
+        post("assistant.playback.active");
+      });
+      remoteAudio.addEventListener("pause", () => {
+        assistantPlaybackActive = false;
+        post("assistant.playback.inactive", "pause");
+      });
+      remoteAudio.addEventListener("ended", () => {
+        assistantPlaybackActive = false;
+        post("assistant.playback.inactive", "ended");
+      });
+
+      dc = pc.createDataChannel("oai-events");
+      dc.onopen = () => post("data.channel.open");
+      dc.onmessage = event => post("data.channel.message", event.data);
+      dc.onerror = event => post("fault", "data_channel_error");
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const response = await fetch(config.callsEndpoint, {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + config.clientSecret,
+          "Content-Type": "application/sdp"
+        },
+        body: offer.sdp
+      });
+
+      if (!response.ok) {
+        post("fault", "sdp_exchange_failed:" + response.status);
+        return;
+      }
+
+      const answer = await response.text();
+      await pc.setRemoteDescription({ type: "answer", sdp: answer });
+      post("peer.connection.established");
+    }
+
+    function sendRealtimeEvent(event) {
+      if (!dc || dc.readyState !== "open") {
+        post("fault", "data_channel_not_open");
+        return;
+      }
+      if (event && (event.type === "response.create" || event.type === "session.update")) {
+        remoteAudio.muted = false;
+        remoteAudio.play().catch(() => {});
+      }
+      dc.send(JSON.stringify(event));
+    }
+
+    function interruptRealtime() {
+      if (dc && dc.readyState === "open") {
+        dc.send(JSON.stringify({ type: "response.cancel" }));
+        remoteAudio.muted = true;
+        remoteAudio.pause();
+        assistantPlaybackActive = false;
+        post("interrupt.sent");
+        post("remote.audio.flushed");
+        post("assistant.item.truncate.not_required", "ga_webrtc_response_cancel_provider_managed_audio");
+      }
+    }
+
+    function resumeRemoteAudio() {
+      remoteAudio.muted = false;
+      if (remoteAudio.srcObject) {
+        remoteAudio.play()
+          .then(() => {
+            assistantPlaybackActive = true;
+            post("assistant.playback.active");
+          })
+          .catch(error => post("fault", "remote_audio_resume_failed:" + error.message));
+      }
+    }
+
+    function stopRealtime() {
+      if (dc) dc.close();
+      if (pc) pc.close();
+      if (localStream) localStream.getTracks().forEach(track => track.stop());
+      post("closed");
+    }
+
+    window.JarvisRealtimeTransport = { startRealtime, sendRealtimeEvent, interruptRealtime, resumeRemoteAudio, stopRealtime };
+  </script>
+</body>
+</html>

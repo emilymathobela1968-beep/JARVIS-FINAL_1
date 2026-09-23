@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Jarvis.Contracts\Jarvis.Contracts.csproj" />
+    <ProjectReference Include="..\Jarvis.Core\Jarvis.Core.csproj" />
+    <ProjectReference Include="..\Jarvis.Infrastructure\Jarvis.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Barehands\**\*">
+      <Link>Barehands\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
