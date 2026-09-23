@@ -87,6 +87,8 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
   );
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const seq = useRef(0);
+  const nextId = (prefix: string) => `${prefix}-${(seq.current += 1)}`;
   const hasArtifact = artifact !== null;
 
   useEffect(() => {
@@ -103,9 +105,9 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
     setAgentState('BLOCKED');
     setTimeline((prev) => [
       ...prev,
-      { id: `u-${Date.now()}`, kind: 'user', text, timestamp: ts },
+      { id: nextId('u'), kind: 'user', text, timestamp: ts },
       {
-        id: `e-${Date.now()}`,
+        id: nextId('e'),
         kind: 'event',
         text: 'Directive received',
         detail: 'Recorded locally. No execution runtime is connected, so nothing was dispatched.',

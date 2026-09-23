@@ -73,6 +73,25 @@ Validation: `tsc --noEmit` clean, `vite build` clean, Stage 1 visually unchanged
   were NOT changed and re-measure identical (mic 1225,811 · send 1327.5,812.5 · attach 343,813 ·
   keyboard 1120,813 · menu 1554,62 · input 747,813).
 
+### Phase 3 — App Builder screens (DONE 2026-06)
+- Stage machine in `App.tsx`: `hero` → (MENU ▸ Builder) → `intake` → (Build) → `builder`. Hero direct submit
+  still goes straight to `builder`. Directive and selected app type are preserved verbatim.
+- **Screen A — Builder Intake** (`BuilderIntakeScreen.tsx`): supplied artwork
+  `src/assets/images/jarvis_builder_intake.png` (1672×941) as the visual layer, with transparent overlays for
+  the description input (masked baked placeholder), microphone (truthful "voice not connected"), blue Build
+  button, and Web/Mobile/AI selectors (selection shown by a bright blue rule over the artwork's own underline).
+  Measured rects: input 360,546 686×48 · mic 1044,602 · build 1128,601 182×61 · selectors 526/775/1023, 730.
+- **Screen B — Builder Workspace** (`Stage2Workspace.tsx`): rebuilt as live UI. Top nav (Home, Computer,
+  Developer, Media, Builder active, Barehands, System + search). Left = one open scrollable console surface
+  (no boxed cards; user turns marked by a thin blue rule, agent output by a small J glyph, execution records
+  with icon + Cascadia evidence). Large dark-glass composer (attach, text, mic, send). Right = Preview /
+  Inspect / Full Screen + Edit, blue active states, empty truthful preview. Removed: nav rail, browser dots,
+  avatar chip, Launch, Share, "Running" chrome, duplicate branding.
+- Hero foreground scale reduced 3.5% → `FOREGROUND_SCALE = 0.907` in the shared `src/utils/artwork.ts`
+  (hook + rect mapping now shared by hero and intake); overlay alignment re-verified unchanged.
+- Validated by the testing agent: 44/44 frontend assertions passed, zero issues (report
+  `/app/test_reports/iteration_1.json`).
+
 ## Backlog
 ### P0 (next)
 - New JARVIS interface implementation + real execution architecture (awaiting user's visual reference).
