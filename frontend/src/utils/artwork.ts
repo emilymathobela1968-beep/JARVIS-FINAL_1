@@ -8,7 +8,7 @@ export type ArtworkRect = { x: number; y: number; w: number; h: number };
  * Presentation scale of supplied artwork relative to a full cover fit.
  * Slightly pulled back so the composition reads cinematic rather than zoomed-in.
  */
-export const FOREGROUND_SCALE = 0.907;
+export const FOREGROUND_SCALE = 0.88;
 
 /** Measured rendered rectangle of the sharp foreground artwork. */
 export const useArtworkBox = (imgW: number, imgH: number, scaleFactor = FOREGROUND_SCALE): ArtworkBox => {

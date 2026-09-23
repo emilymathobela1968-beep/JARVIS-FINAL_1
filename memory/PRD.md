@@ -102,6 +102,13 @@ Validation: `tsc --noEmit` clean, `vite build` clean, Stage 1 visually unchanged
   (#2F7CFF → #1B55CC gradients, rgba(47,124,255,.24) inactive edges, #5C9DFF/#7FB4FF accents).
   Compact rectangular controls, no pills; left console remains open and unboxed.
 
+### Phase 3.2 — Final scale / spacing / control size (DONE 2026-06)
+- Shared `FOREGROUND_SCALE` 0.907 → **0.88** (hero ~3% smaller; overlay coords unchanged and re-verified).
+- Builder Intake artwork: panel assembly (glass panel + mic + Build + selector row) composited 33px lower as one
+  unit with seam cross-fades; overlay rects shifted +33px in y accordingly.
+- Workspace top controls (Preview / Inspect / Full Screen / Edit): height 47px, px-5, gap-2.5, 18px icons,
+  15px text, same sapphire treatment and radius.
+
 ## Backlog
 ### P0 (next)
 - New JARVIS interface implementation + real execution architecture (awaiting user's visual reference).

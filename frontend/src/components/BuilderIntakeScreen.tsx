@@ -7,17 +7,17 @@ import { useArtworkBox, placeIn, EDGE_FEATHER, FILL_LAYER, ArtworkRect } from '.
 const IMG_W = 1672;
 const IMG_H = 941;
 
-/** Control rects measured directly from the supplied intake artwork. */
+/** Control rects measured from the supplied intake artwork (panel assembly shifted down 33px). */
 const RECT: Record<string, ArtworkRect> = {
-  input: { x: 360, y: 546, w: 686, h: 48 },
-  mic: { x: 1044, y: 602, w: 54, h: 56 },
-  build: { x: 1128, y: 601, w: 182, h: 61 },
-  web: { x: 526, y: 730, w: 120, h: 104 },
-  mobile: { x: 775, y: 730, w: 120, h: 104 },
-  ai: { x: 1023, y: 730, w: 120, h: 104 },
-  webRule: { x: 566, y: 825, w: 42, h: 3 },
-  mobileRule: { x: 814, y: 825, w: 42, h: 3 },
-  aiRule: { x: 1062, y: 825, w: 42, h: 3 },
+  input: { x: 360, y: 579, w: 686, h: 48 },
+  mic: { x: 1044, y: 635, w: 54, h: 56 },
+  build: { x: 1128, y: 634, w: 182, h: 61 },
+  web: { x: 526, y: 763, w: 120, h: 104 },
+  mobile: { x: 775, y: 763, w: 120, h: 104 },
+  ai: { x: 1023, y: 763, w: 120, h: 104 },
+  webRule: { x: 566, y: 858, w: 42, h: 3 },
+  mobileRule: { x: 814, y: 858, w: 42, h: 3 },
+  aiRule: { x: 1062, y: 858, w: 42, h: 3 },
   status: { x: 360, y: 700, w: 700, h: 40 },
   logoMask: { x: 26, y: 26, w: 256, h: 68 },
   logo: { x: 40, y: 21, w: 250, h: 78 },

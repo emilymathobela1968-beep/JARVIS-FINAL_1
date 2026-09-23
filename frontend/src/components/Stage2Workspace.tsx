@@ -133,7 +133,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+      className="flex items-center gap-2.5 px-5 h-[47px] rounded-lg text-[15px] transition-all disabled:opacity-35 disabled:cursor-not-allowed"
       style={
         active
           ? {
@@ -151,7 +151,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
       }
       data-testid={testId}
     >
-      <Icon className="w-4 h-4" />
+      <Icon className="w-[18px] h-[18px]" />
       <span>{label}</span>
     </button>
   );
