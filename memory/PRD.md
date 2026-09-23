@@ -92,6 +92,16 @@ Validation: `tsc --noEmit` clean, `vite build` clean, Stage 1 visually unchanged
 - Validated by the testing agent: 44/44 frontend assertions passed, zero issues (report
   `/app/test_reports/iteration_1.json`).
 
+### Phase 3.1 — Visual refinement (DONE 2026-06)
+- Hero untouched. Builder Intake artwork untouched except brand consistency: baked plain wordmark masked by an
+  aligned blurred slice of its own artwork, with the accepted chrome JARVIS logo (alpha-keyed crop of the hero
+  artwork → `src/assets/images/jarvis_logo_chrome.png`) overlaid at artwork coords 40,21 250×78.
+- Workspace: removed the large perimeter border/frame around the right preview canvas (it now dissolves into the
+  workspace), removed the left column border/glow (surface lift only), page surface lifted #030508 → #050A14 /
+  left pane #070E1C, and all cyan/turquoise treatments replaced with a sapphire system
+  (#2F7CFF → #1B55CC gradients, rgba(47,124,255,.24) inactive edges, #5C9DFF/#7FB4FF accents).
+  Compact rectangular controls, no pills; left console remains open and unboxed.
+
 ## Backlog
 ### P0 (next)
 - New JARVIS interface implementation + real execution architecture (awaiting user's visual reference).

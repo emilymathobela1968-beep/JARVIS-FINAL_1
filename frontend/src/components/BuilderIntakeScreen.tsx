@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import intakeArtwork from '../assets/images/jarvis_builder_intake.png';
+import chromeLogo from '../assets/images/jarvis_logo_chrome.png';
 import { AppCategory } from '../types';
 import { useArtworkBox, placeIn, EDGE_FEATHER, FILL_LAYER, ArtworkRect } from '../utils/artwork';
 
@@ -18,6 +19,8 @@ const RECT: Record<string, ArtworkRect> = {
   mobileRule: { x: 814, y: 825, w: 42, h: 3 },
   aiRule: { x: 1062, y: 825, w: 42, h: 3 },
   status: { x: 360, y: 700, w: 700, h: 40 },
+  logoMask: { x: 26, y: 26, w: 256, h: 68 },
+  logo: { x: 40, y: 21, w: 250, h: 78 },
 };
 
 const place = (r: ArtworkRect) => placeIn(r, IMG_W, IMG_H);
@@ -61,8 +64,8 @@ export const BuilderIntakeScreen: React.FC<BuilderIntakeScreenProps> = ({ onBuil
         <div
           style={{
             ...place(rule),
-            background: '#25C8FF',
-            boxShadow: '0 0 12px rgba(37, 200, 255, 0.9)',
+            background: '#2F7CFF',
+            boxShadow: '0 0 10px rgba(47, 124, 255, 0.8)',
             borderRadius: 2,
           }}
           className="pointer-events-none"
@@ -95,6 +98,29 @@ export const BuilderIntakeScreen: React.FC<BuilderIntakeScreenProps> = ({ onBuil
           className="absolute inset-0 w-full h-full select-none"
           style={{ objectFit: 'fill', ...EDGE_FEATHER }}
           data-testid="intake-artwork"
+        />
+
+        {/* Brand consistency: mask the baked plain wordmark and reuse the accepted
+            chrome JARVIS identity from the Hero artwork. Nothing else is altered. */}
+        <div style={{ ...place(RECT.logoMask), overflow: 'hidden' }} className="pointer-events-none">
+          <div
+            className="absolute"
+            style={{
+              inset: -s(20),
+              backgroundImage: `url(${intakeArtwork})`,
+              backgroundSize: `${box.w}px ${box.h}px`,
+              backgroundPosition: `${-(s(RECT.logoMask.x) - s(20))}px ${-(s(RECT.logoMask.y) - s(20))}px`,
+              filter: `blur(${Math.max(8, s(12))}px)`,
+            }}
+          />
+        </div>
+        <img
+          src={chromeLogo}
+          alt="JARVIS"
+          draggable={false}
+          style={{ ...place(RECT.logo) }}
+          className="pointer-events-none select-none object-contain"
+          data-testid="intake-chrome-logo"
         />
 
         {/* Application description field — the artwork's baked placeholder is
@@ -130,7 +156,7 @@ export const BuilderIntakeScreen: React.FC<BuilderIntakeScreenProps> = ({ onBuil
               fontSize: s(23),
               lineHeight: 1.2,
               color: '#F5F8FF',
-              caretColor: '#25C8FF',
+              caretColor: '#2F7CFF',
             }}
             data-testid="intake-input"
           />

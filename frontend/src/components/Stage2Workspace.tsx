@@ -133,11 +133,22 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+      style={
         active
-          ? 'text-[#F5F8FF] bg-[#2F7CFF]/90 border border-[#149BFF]'
-          : 'text-[#8EA1BA] bg-[rgba(7,17,31,0.72)] border border-[rgba(47,124,255,0.22)] enabled:hover:text-[#F5F8FF] enabled:hover:border-[rgba(47,124,255,0.5)]'
-      }`}
+          ? {
+              color: '#F5F8FF',
+              background: 'linear-gradient(180deg, #2F7CFF 0%, #1B55CC 100%)',
+              border: '1px solid rgba(120, 178, 255, 0.85)',
+              boxShadow: '0 0 18px rgba(47, 124, 255, 0.32), inset 0 1px 0 rgba(255,255,255,0.18)',
+            }
+          : {
+              color: '#8EA1BA',
+              background: 'linear-gradient(180deg, rgba(13, 24, 44, 0.85) 0%, rgba(8, 15, 29, 0.85) 100%)',
+              border: '1px solid rgba(47, 124, 255, 0.24)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+            }
+      }
       data-testid={testId}
     >
       <Icon className="w-4 h-4" />
@@ -146,7 +157,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
   );
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-[#030508] text-[#F5F8FF] flex flex-col font-sans">
+    <div className="w-screen h-screen overflow-hidden bg-[#050A14] text-[#F5F8FF] flex flex-col font-sans">
       {/* TOP NAVIGATION */}
       <nav className="h-14 shrink-0 flex items-center justify-center relative border-b border-[rgba(47,124,255,0.14)]">
         <div className="flex items-center gap-1">
@@ -166,10 +177,10 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                 }`}
                 data-testid={`nav-${id}`}
               >
-                <Icon className={`w-4 h-4 ${active ? 'text-[#25C8FF]' : ''}`} />
+                <Icon className={`w-4 h-4 ${active ? 'text-[#5C9DFF]' : ''}`} />
                 <span>{label}</span>
                 {active && (
-                  <span className="absolute left-3 right-3 -bottom-[11px] h-[2px] bg-[#149BFF] shadow-[0_0_10px_#149BFF]" />
+                  <span className="absolute left-3 right-3 -bottom-[11px] h-[2px] bg-[#2F7CFF] shadow-[0_0_10px_rgba(47,124,255,0.75)]" />
                 )}
               </button>
             );
@@ -191,7 +202,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
         {/* LEFT — one open console surface */}
         {!isFullScreen && (
           <section
-            className="w-[36%] min-w-[380px] flex flex-col rounded-2xl border border-[rgba(47,124,255,0.2)] bg-[rgba(5,9,21,0.75)] overflow-hidden shadow-[0_0_30px_rgba(20,155,255,0.07)]"
+            className="w-[36%] min-w-[380px] flex flex-col rounded-2xl bg-[#070E1C]/85 overflow-hidden"
             data-testid="builder-left-pane"
           >
             <div className="px-6 pt-6 pb-4">
@@ -226,7 +237,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                   if (entry.kind === 'agent') {
                     return (
                       <div key={entry.id} className="flex gap-3" data-testid="timeline-agent">
-                        <span className="mt-1 w-5 h-5 shrink-0 rounded-full border border-[#149BFF]/70 text-[#25C8FF] text-[10px] flex items-center justify-center">
+                        <span className="mt-1 w-5 h-5 shrink-0 rounded-full border border-[#2F7CFF]/70 text-[#7FB4FF] text-[10px] flex items-center justify-center">
                           J
                         </span>
                         <div>
@@ -243,7 +254,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                     <div key={entry.id} className="flex gap-3" data-testid="timeline-event">
                       <span className="mt-1 shrink-0">
                         {entry.status === 'completed' && <Check className="w-4 h-4 text-[#28D7A1]" />}
-                        {entry.status === 'running' && <Loader2 className="w-4 h-4 text-[#25C8FF] animate-spin" />}
+                        {entry.status === 'running' && <Loader2 className="w-4 h-4 text-[#5C9DFF] animate-spin" />}
                         {entry.status === 'blocked' && <Ban className="w-4 h-4 text-[#FF2346]" />}
                         {entry.status === 'failed' && <AlertTriangle className="w-4 h-4 text-[#FF2346]" />}
                       </span>
@@ -276,9 +287,9 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
               <div
                 className="rounded-2xl px-4 pt-4 pb-3"
                 style={{
-                  background: 'rgba(8, 20, 36, 0.82)',
-                  border: '1px solid rgba(47, 124, 255, 0.35)',
-                  boxShadow: '0 0 24px rgba(20, 155, 255, 0.10)',
+                  background: 'linear-gradient(180deg, rgba(12, 24, 46, 0.9) 0%, rgba(8, 16, 32, 0.9) 100%)',
+                  border: '1px solid rgba(47, 124, 255, 0.3)',
+                  boxShadow: '0 0 20px rgba(47, 124, 255, 0.08), inset 0 1px 0 rgba(255,255,255,0.05)',
                   backdropFilter: 'blur(16px)',
                   WebkitBackdropFilter: 'blur(16px)',
                 }}
@@ -302,7 +313,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                   <button
                     type="button"
                     onClick={() => setNotice('Attachments are not configured yet')}
-                    className="w-9 h-9 rounded-lg border border-[rgba(47,124,255,0.22)] text-[#8EA1BA] hover:text-[#F5F8FF] hover:border-[rgba(47,124,255,0.5)] flex items-center justify-center transition-colors"
+                    className="w-9 h-9 rounded-lg bg-[rgba(12,24,46,0.85)] border border-[rgba(47,124,255,0.24)] text-[#8EA1BA] hover:text-[#F5F8FF] hover:border-[rgba(47,124,255,0.55)] flex items-center justify-center transition-all"
                     aria-label="Attach a file"
                     data-testid="composer-attach-button"
                   >
@@ -313,7 +324,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                     <button
                       type="button"
                       onClick={() => setNotice('Voice not connected — realtime voice runtime pending integration')}
-                      className="w-9 h-9 rounded-lg border border-[rgba(47,124,255,0.22)] text-[#8EA1BA] hover:text-[#25C8FF] hover:border-[rgba(47,124,255,0.5)] flex items-center justify-center transition-colors"
+                      className="w-9 h-9 rounded-lg bg-[rgba(12,24,46,0.85)] border border-[rgba(47,124,255,0.24)] text-[#8EA1BA] hover:text-[#7FB4FF] hover:border-[rgba(47,124,255,0.55)] flex items-center justify-center transition-all"
                       aria-label="Voice input"
                       data-testid="composer-mic-button"
                     >
@@ -324,7 +335,12 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                       type="button"
                       onClick={send}
                       disabled={!inputVal.trim()}
-                      className="w-10 h-9 rounded-lg bg-[#2F7CFF] enabled:hover:bg-[#149BFF] text-white flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="w-10 h-9 rounded-lg text-white flex items-center justify-center transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+                      style={{
+                        background: 'linear-gradient(180deg, #2F7CFF 0%, #1B55CC 100%)',
+                        border: '1px solid rgba(120, 178, 255, 0.85)',
+                        boxShadow: '0 0 16px rgba(47, 124, 255, 0.3), inset 0 1px 0 rgba(255,255,255,0.18)',
+                      }}
                       aria-label="Send"
                       data-testid="composer-send-button"
                     >
@@ -338,8 +354,8 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
         )}
 
         {/* RIGHT — preview workspace */}
-        <section className="flex-1 min-w-0 flex flex-col rounded-2xl border border-[rgba(47,124,255,0.2)] bg-[rgba(5,9,21,0.6)] overflow-hidden shadow-[0_0_30px_rgba(20,155,255,0.07)]">
-          <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <section className="flex-1 min-w-0 flex flex-col">
+          <div className="flex items-center justify-between gap-3 px-1 py-3">
             <div className="flex items-center gap-2">
               {toolButton('Preview', Eye, viewMode === 'preview', () => setViewMode('preview'), 'view-preview-button')}
               {toolButton('Inspect', Code2, viewMode === 'inspect', () => setViewMode('inspect'), 'view-inspect-button')}
@@ -368,13 +384,13 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
             )}
           </div>
 
-          <div className="flex-1 min-h-0 m-4 mt-0 rounded-xl border border-[rgba(47,124,255,0.18)] bg-[#030508] overflow-hidden">
+          <div className="flex-1 min-h-0 mt-1 overflow-hidden">
             {viewMode === 'preview' && <GeneratedArtifact artifact={artifact} />}
 
             {viewMode === 'inspect' && (
               <div className="w-full h-full p-6 overflow-y-auto" data-testid="inspect-panel">
                 {artifact?.source ? (
-                  <pre className="text-[12px] font-mono-jarvis leading-relaxed text-[#25C8FF] whitespace-pre-wrap">
+                  <pre className="text-[12px] font-mono-jarvis leading-relaxed text-[#7FB4FF] whitespace-pre-wrap">
                     {artifact.source}
                   </pre>
                 ) : (

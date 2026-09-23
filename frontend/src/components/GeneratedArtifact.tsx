@@ -8,7 +8,7 @@ interface GeneratedArtifactProps {
 }
 
 const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="w-full h-full flex items-center justify-center bg-[#030508] px-8">
+  <div className="w-full h-full flex items-center justify-center px-8">
     <div className="max-w-md w-full text-center space-y-3">{children}</div>
   </div>
 );
@@ -35,14 +35,14 @@ export const GeneratedArtifact: React.FC<GeneratedArtifactProps> = ({ artifact }
     return (
       <Shell>
         <div className="flex justify-center">
-          <Loader2 className="w-6 h-6 text-[#58D7FF] animate-spin" />
+          <Loader2 className="w-6 h-6 text-[#7FB4FF] animate-spin" />
         </div>
         <div className="text-base font-semibold text-[#F5F8FF]">Building artifact</div>
         <p className="text-sm text-[#8B98AA] leading-relaxed">
           {artifact.name} is being generated.
         </p>
         {typeof artifact.progress === 'number' && (
-          <p className="text-xs font-mono-jarvis text-[#58D7FF]">{artifact.progress}% reported by runtime</p>
+          <p className="text-xs font-mono-jarvis text-[#7FB4FF]">{artifact.progress}% reported by runtime</p>
         )}
       </Shell>
     );
@@ -90,7 +90,7 @@ export const GeneratedArtifact: React.FC<GeneratedArtifactProps> = ({ artifact }
 
   // status === 'verified' — render only what the run actually produced.
   return (
-    <div className="w-full h-full bg-[#030508] overflow-auto">
+    <div className="w-full h-full overflow-auto">
       {artifact.source ? (
         <iframe
           title={artifact.name}
