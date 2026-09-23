@@ -9,6 +9,9 @@ import heroArtwork from '../assets/images/jarvis_home_hero.png';
 const IMG_W = 1672;
 const IMG_H = 941;
 
+/** Foreground presentation scale relative to a full cover fit (cinematic pull-back). */
+const FOREGROUND_SCALE = 0.94;
+
 /** Rects measured directly from the reference artwork (image pixels). */
 const RECT = {
   menu: { x: 1470, y: 30, w: 168, h: 64 },
@@ -52,7 +55,7 @@ export const JarvisHeroScreen: React.FC<JarvisHeroScreenProps> = ({ onStartBuild
     const measure = () => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const scale = Math.max(vw / IMG_W, vh / IMG_H);
+      const scale = Math.max(vw / IMG_W, vh / IMG_H) * FOREGROUND_SCALE;
       const w = IMG_W * scale;
       const h = IMG_H * scale;
       setBox({ left: (vw - w) / 2, top: (vh - h) / 2, w, h, scale });
@@ -94,6 +97,22 @@ export const JarvisHeroScreen: React.FC<JarvisHeroScreenProps> = ({ onStartBuild
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black" data-testid="hero-screen">
+      {/* 0. BACKGROUND FILL — same artwork, softened, only to carry the perimeter
+          beyond the sharp foreground so the scene stays full-bleed. */}
+      <img
+        src={heroArtwork}
+        alt=""
+        aria-hidden
+        draggable={false}
+        className="absolute inset-0 w-full h-full select-none pointer-events-none"
+        style={{
+          objectFit: 'cover',
+          transform: 'scale(1.05)',
+          filter: 'blur(26px) brightness(0.62) saturate(0.9)',
+        }}
+        data-testid="hero-artwork-fill"
+      />
+
       <div
         className="absolute"
         style={{ left: box.left, top: box.top, width: box.w, height: box.h }}
@@ -105,7 +124,15 @@ export const JarvisHeroScreen: React.FC<JarvisHeroScreenProps> = ({ onStartBuild
           alt="JARVIS"
           draggable={false}
           className="absolute inset-0 w-full h-full select-none"
-          style={{ objectFit: 'fill' }}
+          style={{
+            objectFit: 'fill',
+            maskImage:
+              'linear-gradient(to right, transparent 0, #000 2.2%, #000 97.8%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 2.6%, #000 97.4%, transparent 100%)',
+            WebkitMaskImage:
+              'linear-gradient(to right, transparent 0, #000 2.2%, #000 97.8%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 2.6%, #000 97.4%, transparent 100%)',
+            maskComposite: 'intersect',
+            WebkitMaskComposite: 'source-in',
+          }}
           data-testid="hero-artwork"
         />
 

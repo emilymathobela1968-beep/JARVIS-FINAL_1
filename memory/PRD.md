@@ -64,6 +64,15 @@ Validation: `tsc --noEmit` clean, `vite build` clean, Stage 1 visually unchanged
   **BLOCKED — "No execution runtime is connected"** plus a truthful "Directive received / dispatch=skipped"
   event. Preview stays empty.
 
+### Phase 2b — Hero viewport scale refinement (DONE 2026-06)
+- Foreground artwork now presented at `FOREGROUND_SCALE = 0.94` of a full cover fit (≈6% pulled back).
+- Two-layer presentation: unobtrusive blurred/darkened cover copy of the same artwork fills the perimeter
+  (`scale(1.05)`, `blur(26px) brightness(0.62) saturate(0.9)`), foreground stays sharp and undistorted with a
+  ~2.2%/2.6% feathered edge mask so there is no seam, bar, frame or visible second image.
+- All overlay hit targets still derive from the measured foreground rectangle; artwork-space coordinates
+  were NOT changed and re-measure identical (mic 1225,811 · send 1327.5,812.5 · attach 343,813 ·
+  keyboard 1120,813 · menu 1554,62 · input 747,813).
+
 ## Backlog
 ### P0 (next)
 - New JARVIS interface implementation + real execution architecture (awaiting user's visual reference).
