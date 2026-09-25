@@ -109,6 +109,26 @@ Validation: `tsc --noEmit` clean, `vite build` clean, Stage 1 visually unchanged
 - Workspace top controls (Preview / Inspect / Full Screen / Edit): height 47px, px-5, gap-2.5, 18px icons,
   15px text, same sapphire treatment and radius.
 
+### Phase 4 / Milestone 1 — Real Web App generation (DONE 2026-07)
+- Backend wired for the first time. `backend/.env` restored with MONGO_URL / DB_NAME / CORS_ORIGINS and
+  EMERGENT_LLM_KEY. `frontend/.env` created with REACT_APP_BACKEND_URL; `vite.config.ts` `envPrefix`
+  extended to expose `REACT_APP_`.
+- New endpoints (`backend/server.py`): `POST /api/builder/generate` (SSE, streams start/delta/done/error;
+  real single self-contained HTML doc via OpenAI **gpt-5.4** through emergentintegrations; persisted to
+  `db.generations`), `POST /api/builder/verify/{id}`. Unsupported app_type -> 422, empty objective -> 400.
+- Frontend (`Stage2Workspace.tsx`, `GeneratedArtifact.tsx`, `utils/api.ts`): streams generation into the
+  timeline with honest char-count progress; renders the result in a sandboxed iframe (`allow-scripts`).
+  Verification is REAL — a tiny injected probe postMessages `render` (on load) and `interaction` (first
+  click/key/input) from inside the sandbox; status flips generating -> unverified -> verified only when
+  BOTH are observed. Failed runs show failure reason + evidence. Stop button aborts a run.
+- Edit objective (regenerates) + composer refinements (regenerate with change applied). Full Screen/Exit,
+  Preview/Inspect retained. Deferred items visibly BLOCKED/unavailable: Mobile App, AI Model, Media,
+  Computer/Developer/System/Barehands/Search, attachments, voice, saved history, deployment.
+- Verified via curl + automated browser: to-do & tip-calculator apps generated, rendered, and flipped to
+  verified on real interaction; mobile-type shows honest blocked state. Backend testing agent: all 3
+  endpoints pass.
+
+
 ## Backlog
 ### P0 (next)
 - New JARVIS interface implementation + real execution architecture (awaiting user's visual reference).

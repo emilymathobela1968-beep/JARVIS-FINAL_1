@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GeneratedArtifact } from './GeneratedArtifact';
 import { AgentState, AppCategory, Artifact, TimelineEntry } from '../types';
+import { generateWebApp, markVerified } from '../utils/api';
 import {
   Home,
   Monitor,
@@ -21,6 +22,7 @@ import {
   Loader2,
   Check,
   AlertTriangle,
+  X,
 } from 'lucide-react';
 
 interface Stage2WorkspaceProps {
@@ -42,10 +44,10 @@ const NAV = [
 
 const AGENT_LINE: Record<AgentState, string> = {
   WAITING: 'JARVIS is waiting',
-  WORKING: 'JARVIS is analysing…',
-  ACTION_REQUIRED: 'JARVIS needs your input',
-  BLOCKED: 'JARVIS is blocked — no execution runtime connected',
-  ARTIFACT_READY: 'Artifact ready — preview available',
+  WORKING: 'JARVIS is generating…',
+  ACTION_REQUIRED: 'Interact with the preview to verify',
+  BLOCKED: 'JARVIS is blocked',
+  ARTIFACT_READY: 'Verified artifact ready',
 };
 
 const APP_TYPE_LABEL: Record<AppCategory, string> = {
@@ -62,63 +64,229 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
   onReturnHome,
   onOpenIntake,
 }) => {
-  const [viewMode, setViewMode] = useState<'preview' | 'inspect' | 'edit'>('preview');
+  const [viewMode, setViewMode] = useState<'preview' | 'inspect'>('preview');
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [agentState, setAgentState] = useState<AgentState>(initialPrompt ? 'BLOCKED' : 'WAITING');
+  const [agentState, setAgentState] = useState<AgentState>('WAITING');
   const [artifact, setArtifact] = useState<Artifact | null>(null);
   const [inputVal, setInputVal] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [streamedChars, setStreamedChars] = useState(0);
 
-  const [timeline, setTimeline] = useState<TimelineEntry[]>(
-    initialPrompt
-      ? [
-          { id: 'u-0', kind: 'user', text: initialPrompt, timestamp: now() },
-          {
-            id: 'e-0',
-            kind: 'event',
-            text: 'Directive received',
-            detail: 'Recorded locally. No execution runtime is connected, so nothing was dispatched.',
-            evidence: 'runtime=none dispatch=skipped',
-            status: 'blocked',
-            timestamp: now(),
-          },
-        ]
-      : []
-  );
+  const [objective, setObjective] = useState(initialPrompt);
+  const [editingObjective, setEditingObjective] = useState(false);
+  const [objectiveDraft, setObjectiveDraft] = useState(initialPrompt);
+
+  const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const seq = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+  const sessionRef = useRef<string | undefined>(undefined);
+  const startedRef = useRef(false);
+
   const nextId = (prefix: string) => `${prefix}-${(seq.current += 1)}`;
-  const hasArtifact = artifact !== null;
+  const isBusy = agentState === 'WORKING';
+  const canEditArtifact = artifact?.status === 'verified';
 
-  useEffect(() => {
-    if (!notice) return;
-    const t = setTimeout(() => setNotice(null), 3200);
-    return () => clearTimeout(t);
-  }, [notice]);
-
-  const send = () => {
-    const text = inputVal.trim();
-    if (!text) return;
-    const ts = now();
-    setInputVal('');
-    setAgentState('BLOCKED');
-    setTimeline((prev) => [
-      ...prev,
-      { id: nextId('u'), kind: 'user', text, timestamp: ts },
-      {
-        id: nextId('e'),
-        kind: 'event',
-        text: 'Directive received',
-        detail: 'Recorded locally. No execution runtime is connected, so nothing was dispatched.',
-        evidence: 'runtime=none dispatch=skipped',
-        status: 'blocked',
-        timestamp: ts,
-      },
-    ]);
+  const scrollToBottom = () => {
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     });
+  };
+
+  const pushTimeline = (entries: TimelineEntry[]) => {
+    setTimeline((prev) => [...prev, ...entries]);
+    scrollToBottom();
+  };
+
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 3400);
+    return () => clearTimeout(t);
+  }, [notice]);
+
+  // ---- generation --------------------------------------------------------
+  const runGeneration = (effectiveObjective: string, displayText: string, isInitial = false) => {
+    const ts = now();
+    setStreamedChars(0);
+    setViewMode('preview');
+    setAgentState('WORKING');
+
+    const genArtifact: Artifact = {
+      id: nextId('art'),
+      name: 'Web App',
+      revision: 'REV',
+      status: 'generating',
+      createdAt: ts,
+    };
+    setArtifact(genArtifact);
+
+    const runEventId = nextId('e');
+    pushTimeline([
+      ...(isInitial ? [] : [{ id: nextId('u'), kind: 'user' as const, text: displayText, timestamp: ts }]),
+      {
+        id: runEventId,
+        kind: 'event',
+        text: 'Generating web app',
+        detail: 'JARVIS is writing a self-contained single-page web app.',
+        status: 'running',
+        timestamp: ts,
+      },
+    ]);
+
+    let received = 0;
+    abortRef.current = generateWebApp(
+      { objective: effectiveObjective, app_type: 'web', session_id: sessionRef.current },
+      {
+        onStart: (d) => {
+          sessionRef.current = d.session_id;
+        },
+        onDelta: (content) => {
+          received += content.length;
+          setStreamedChars(received);
+        },
+        onDone: (d) => {
+          setArtifact({
+            id: d.id,
+            name: 'Web App',
+            revision: 'REV',
+            status: 'unverified',
+            createdAt: now(),
+            source: d.source,
+            evidence: d.evidence,
+          });
+          setAgentState('ACTION_REQUIRED');
+          setTimeline((prev) =>
+            prev.map((en) =>
+              en.id === runEventId
+                ? {
+                    ...en,
+                    text: 'Web app generated',
+                    detail: 'Rendered in the sandbox. Interact with the preview to verify it.',
+                    evidence: d.evidence,
+                    status: 'completed',
+                  }
+                : en
+            )
+          );
+          scrollToBottom();
+        },
+        onError: (d) => {
+          setArtifact({
+            id: nextId('art'),
+            name: 'Web App',
+            revision: 'REV',
+            status: 'failed',
+            createdAt: now(),
+            failureReason: d.message,
+            evidence: d.evidence,
+          });
+          setAgentState('BLOCKED');
+          setTimeline((prev) =>
+            prev.map((en) =>
+              en.id === runEventId
+                ? {
+                    ...en,
+                    text: 'Generation failed',
+                    detail: d.message,
+                    evidence: d.evidence,
+                    status: 'failed',
+                  }
+                : en
+            )
+          );
+          scrollToBottom();
+        },
+      }
+    );
+  };
+
+  const stopGeneration = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setArtifact(null);
+    setAgentState('WAITING');
+    setStreamedChars(0);
+    pushTimeline([
+      {
+        id: nextId('e'),
+        kind: 'event',
+        text: 'Generation stopped',
+        detail: 'You stopped the run before it finished.',
+        status: 'blocked',
+        timestamp: now(),
+      },
+    ]);
+  };
+
+  const onVerified = () => {
+    setArtifact((prev) => (prev ? { ...prev, status: 'verified' } : prev));
+    setAgentState('ARTIFACT_READY');
+    if (artifact?.id) markVerified(artifact.id);
+    pushTimeline([
+      {
+        id: nextId('e'),
+        kind: 'event',
+        text: 'Artifact verified',
+        detail: 'Real render and interaction were observed inside the sandbox.',
+        evidence: 'render=confirmed interaction=confirmed',
+        status: 'completed',
+        timestamp: now(),
+      },
+    ]);
+  };
+
+  // ---- initial run (once) ------------------------------------------------
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+
+    if (!initialPrompt.trim()) {
+      setAgentState('WAITING');
+      return;
+    }
+
+    const ts = now();
+    setTimeline([{ id: nextId('u'), kind: 'user', text: initialPrompt, timestamp: ts }]);
+
+    if (appType === 'mobile' || appType === 'ai') {
+      setAgentState('BLOCKED');
+      pushTimeline([
+        {
+          id: nextId('e'),
+          kind: 'event',
+          text: `${APP_TYPE_LABEL[appType]} is not available yet`,
+          detail:
+            'This milestone builds Web Apps only. Mobile App and AI Model generation arrive in a later milestone.',
+          evidence: `requested=${appType} supported=web`,
+          status: 'blocked',
+          timestamp: ts,
+        },
+      ]);
+      return;
+    }
+
+    runGeneration(initialPrompt, initialPrompt, true);
+  }, []);
+
+  // ---- composer / objective ---------------------------------------------
+  const send = () => {
+    const text = inputVal.trim();
+    if (!text || isBusy) return;
+    setInputVal('');
+    const effective = objective
+      ? `${objective}\n\nApply this change to the web app: ${text}`
+      : text;
+    runGeneration(effective, text);
+  };
+
+  const saveObjective = () => {
+    const next = objectiveDraft.trim();
+    setEditingObjective(false);
+    if (!next || next === objective) return;
+    setObjective(next);
+    sessionRef.current = undefined; // fresh intent -> fresh session
+    runGeneration(next, `Objective updated: ${next}`);
   };
 
   const toolButton = (
@@ -170,7 +338,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                 onClick={() => {
                   if (id === 'home') return onReturnHome();
                   if (id === 'builder') return onOpenIntake();
-                  setNotice(`${label} is not connected yet`);
+                  setNotice(`${label} is not available in this milestone`);
                 }}
                 className={`relative flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
                   active ? 'text-[#F5F8FF]' : 'text-[#8EA1BA] hover:text-[#DCE5F2]'
@@ -189,7 +357,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
 
         <button
           type="button"
-          onClick={() => setNotice('Search is not connected yet')}
+          onClick={() => setNotice('Search is not available in this milestone')}
           className="absolute right-6 text-[#8EA1BA] hover:text-[#F5F8FF] transition-colors"
           aria-label="Search"
           data-testid="nav-search"
@@ -206,13 +374,69 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
             data-testid="builder-left-pane"
           >
             <div className="px-6 pt-6 pb-4">
-              <div className="text-xs tracking-wide text-[#8EA1BA]">Objective</div>
-              <h1 className="mt-1.5 text-base md:text-lg text-[#F5F8FF] leading-relaxed" data-testid="builder-objective-text">
-                {initialPrompt || 'No objective set yet.'}
-              </h1>
-              <div className="mt-2 text-sm text-[#8EA1BA]" data-testid="builder-agent-line">
-                {appType ? `${APP_TYPE_LABEL[appType]} · ` : ''}
-                {AGENT_LINE[agentState]}
+              <div className="flex items-center justify-between">
+                <div className="text-xs tracking-wide text-[#8EA1BA]">Objective</div>
+                {!editingObjective && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setObjectiveDraft(objective);
+                      setEditingObjective(true);
+                    }}
+                    disabled={isBusy}
+                    className="flex items-center gap-1.5 text-xs text-[#7FB4FF] hover:text-[#A9CCFF] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    data-testid="edit-objective-button"
+                  >
+                    <PenLine className="w-3.5 h-3.5" />
+                    Edit objective
+                  </button>
+                )}
+              </div>
+
+              {editingObjective ? (
+                <div className="mt-2" data-testid="objective-editor">
+                  <textarea
+                    value={objectiveDraft}
+                    onChange={(e) => setObjectiveDraft(e.target.value)}
+                    rows={3}
+                    className="w-full bg-[#050A14] rounded-lg px-3 py-2 text-sm text-[#F5F8FF] outline-none border border-[rgba(47,124,255,0.35)] focus:border-[rgba(47,124,255,0.7)] resize-none"
+                    autoFocus
+                  />
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={saveObjective}
+                      className="px-3 py-1.5 rounded-lg text-xs text-white"
+                      style={{ background: 'linear-gradient(180deg, #2F7CFF 0%, #1B55CC 100%)' }}
+                      data-testid="objective-save-button"
+                    >
+                      Save & regenerate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingObjective(false)}
+                      className="px-3 py-1.5 rounded-lg text-xs text-[#8EA1BA] border border-[rgba(47,124,255,0.24)]"
+                      data-testid="objective-cancel-button"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <h1
+                  className="mt-1.5 text-base md:text-lg text-[#F5F8FF] leading-relaxed"
+                  data-testid="builder-objective-text"
+                >
+                  {objective || 'No objective set yet.'}
+                </h1>
+              )}
+
+              <div className="mt-2 text-sm text-[#8EA1BA] flex items-center gap-2" data-testid="builder-agent-line">
+                <span>
+                  {appType ? `${APP_TYPE_LABEL[appType]} · ` : 'Web App · '}
+                  {AGENT_LINE[agentState]}
+                </span>
+                {isBusy && <Loader2 className="w-3.5 h-3.5 text-[#5C9DFF] animate-spin" />}
               </div>
             </div>
 
@@ -304,15 +528,16 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                     }
                   }}
                   rows={2}
-                  placeholder="Ask me anything…"
-                  className="w-full bg-transparent resize-none outline-none text-sm text-[#F5F8FF] placeholder-[#66738A] leading-relaxed"
+                  disabled={isBusy}
+                  placeholder={isBusy ? 'JARVIS is generating…' : 'Describe a change to the web app…'}
+                  className="w-full bg-transparent resize-none outline-none text-sm text-[#F5F8FF] placeholder-[#66738A] leading-relaxed disabled:opacity-50"
                   data-testid="composer-input"
                 />
 
                 <div className="mt-2 flex items-center justify-between">
                   <button
                     type="button"
-                    onClick={() => setNotice('Attachments are not configured yet')}
+                    onClick={() => setNotice('Attachments are not available in this milestone')}
                     className="w-9 h-9 rounded-lg bg-[rgba(12,24,46,0.85)] border border-[rgba(47,124,255,0.24)] text-[#8EA1BA] hover:text-[#F5F8FF] hover:border-[rgba(47,124,255,0.55)] flex items-center justify-center transition-all"
                     aria-label="Attach a file"
                     data-testid="composer-attach-button"
@@ -323,7 +548,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => setNotice('Voice not connected — realtime voice runtime pending integration')}
+                      onClick={() => setNotice('Voice is not available in this milestone')}
                       className="w-9 h-9 rounded-lg bg-[rgba(12,24,46,0.85)] border border-[rgba(47,124,255,0.24)] text-[#8EA1BA] hover:text-[#7FB4FF] hover:border-[rgba(47,124,255,0.55)] flex items-center justify-center transition-all"
                       aria-label="Voice input"
                       data-testid="composer-mic-button"
@@ -331,21 +556,38 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                       <Mic className="w-4 h-4" />
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={send}
-                      disabled={!inputVal.trim()}
-                      className="w-10 h-9 rounded-lg text-white flex items-center justify-center transition-all disabled:opacity-35 disabled:cursor-not-allowed"
-                      style={{
-                        background: 'linear-gradient(180deg, #2F7CFF 0%, #1B55CC 100%)',
-                        border: '1px solid rgba(120, 178, 255, 0.85)',
-                        boxShadow: '0 0 16px rgba(47, 124, 255, 0.3), inset 0 1px 0 rgba(255,255,255,0.18)',
-                      }}
-                      aria-label="Send"
-                      data-testid="composer-send-button"
-                    >
-                      <SendHorizontal className="w-4 h-4" />
-                    </button>
+                    {isBusy ? (
+                      <button
+                        type="button"
+                        onClick={stopGeneration}
+                        className="w-10 h-9 rounded-lg text-white flex items-center justify-center transition-all"
+                        style={{
+                          background: 'linear-gradient(180deg, #FF3B5C 0%, #C81E3C 100%)',
+                          border: '1px solid rgba(255, 120, 140, 0.85)',
+                          boxShadow: '0 0 16px rgba(255, 59, 92, 0.3)',
+                        }}
+                        aria-label="Stop generation"
+                        data-testid="composer-stop-button"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={send}
+                        disabled={!inputVal.trim()}
+                        className="w-10 h-9 rounded-lg text-white flex items-center justify-center transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+                        style={{
+                          background: 'linear-gradient(180deg, #2F7CFF 0%, #1B55CC 100%)',
+                          border: '1px solid rgba(120, 178, 255, 0.85)',
+                          boxShadow: '0 0 16px rgba(47, 124, 255, 0.3), inset 0 1px 0 rgba(255,255,255,0.18)',
+                        }}
+                        aria-label="Send"
+                        data-testid="composer-send-button"
+                      >
+                        <SendHorizontal className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -368,24 +610,15 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
               )}
             </div>
 
-            {toolButton(
-              'Edit',
-              PenLine,
-              viewMode === 'edit',
-              () => {
-                if (!hasArtifact) {
-                  setNotice('Nothing to edit until a verified artifact exists');
-                  return;
-                }
-                setViewMode(viewMode === 'edit' ? 'preview' : 'edit');
-              },
-              'view-edit-button',
-              !hasArtifact
-            )}
+            <div className="text-xs text-[#66738A] font-mono-jarvis pr-2" data-testid="artifact-status-chip">
+              {artifact ? `status: ${artifact.status}` : 'status: none'}
+            </div>
           </div>
 
           <div className="flex-1 min-h-0 mt-1 overflow-hidden">
-            {viewMode === 'preview' && <GeneratedArtifact artifact={artifact} />}
+            {viewMode === 'preview' && (
+              <GeneratedArtifact artifact={artifact} streamedChars={streamedChars} onVerified={onVerified} />
+            )}
 
             {viewMode === 'inspect' && (
               <div className="w-full h-full p-6 overflow-y-auto" data-testid="inspect-panel">
@@ -398,25 +631,20 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                     <div className="space-y-2 max-w-sm">
                       <div className="text-sm text-[#8EA1BA]">No source to inspect</div>
                       <p className="text-sm text-[#66738A] leading-relaxed">
-                        Source appears here once a real run produces an artifact.
+                        Source appears here once a run produces an artifact.
                       </p>
                     </div>
                   </div>
                 )}
               </div>
             )}
-
-            {viewMode === 'edit' && (
-              <div className="w-full h-full flex items-center justify-center text-center p-6" data-testid="edit-panel">
-                <div className="space-y-2 max-w-sm">
-                  <div className="text-sm text-[#8EA1BA]">Nothing to edit</div>
-                  <p className="text-sm text-[#66738A] leading-relaxed">
-                    Artifact parameters become editable after a verified render.
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
+
+          {canEditArtifact && (
+            <div className="px-1 pt-2 text-xs text-[#66738A]" data-testid="edit-hint">
+              Verified. Use “Edit objective” or the composer to iterate on this web app.
+            </div>
+          )}
         </section>
       </div>
     </div>

@@ -101,3 +101,83 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Milestone 1 — JARVIS Web App builder: Home -> Builder -> Workstation, real LLM-generated single-page Web App preview rendered in a sandboxed iframe, verified only after real render + interaction, Full Screen/Exit, edit objective, honest blocked/failed states. Uses Emergent universal key + gpt-5.4. Mobile App / AI Model / Media / saved history / deployment are deferred and must be visibly marked unavailable."
+
+backend:
+  - task: "POST /api/builder/generate — SSE web app generation via gpt-5.4 (emergentintegrations)"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "New SSE endpoint. Streams event: start/delta/done/error. Generates a single self-contained HTML doc. Persists to db.generations. Manually smoke-tested via curl: streams deltas and returns full HTML in done event."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ PASSED comprehensive SSE testing. Endpoint correctly streams: event:start with id & session_id, 1682 event:delta frames, event:done with valid 5832-char HTML starting with '<!DOCTYPE html>'. No error events. Real LLM (gpt-5.4) generated a complete counter web app. Generation ID captured: 8823734c-cac1-4c49-8846-8b15c4657af3"
+  - task: "Unsupported app_type honest rejection (mobile/ai -> HTTP 422)"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "app_type not in {web} returns 422 with detail. Empty objective returns 400. Manually verified mobile returns 422."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ PASSED validation tests. app_type='mobile' returns HTTP 422 with detail: 'mobile generation is not available in this milestone. Only Web App is supported.' Empty objective returns HTTP 400 as expected."
+  - task: "POST /api/builder/verify/{id} — records verified state"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "Marks generation verified; 404 for unknown id."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ PASSED verify endpoint tests. Valid generation_id (8823734c-cac1-4c49-8846-8b15c4657af3) returns HTTP 200 with {id, status:'verified'}. Invalid ID 'does-not-exist-123' correctly returns HTTP 404."
+
+frontend:
+  - task: "Builder generation flow + sandbox verify (render+interaction) + honest states"
+    implemented: true
+    working: true
+    file: "frontend/src/components/Stage2Workspace.tsx, frontend/src/components/GeneratedArtifact.tsx, frontend/src/utils/api.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: "Verified via screenshot automation: to-do + tip-calculator apps generated live, rendered in sandbox (unverified), real iframe click flipped to verified. Mobile App type shows honest BLOCKED state. Full Screen/Inspect/Edit objective controls present."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "POST /api/builder/generate — SSE web app generation via gpt-5.4 (emergentintegrations)"
+    - "Unsupported app_type honest rejection (mobile/ai -> HTTP 422)"
+    - "POST /api/builder/verify/{id} — records verified state"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    -agent: "main"
+    -message: "Please test the 3 new backend endpoints only. 1) POST /api/builder/generate with body {objective:'a simple counter app', app_type:'web'} — it is an SSE (text/event-stream) response; verify it emits event: start, one or more event: delta, and a final event: done whose data.source contains a valid HTML document starting with <!DOCTYPE html>. Note this calls a real LLM (gpt-5.4) so allow up to ~90s. 2) POST /api/builder/generate with app_type:'mobile' must return HTTP 422; empty objective must return 400. 3) POST /api/builder/verify/{id} using an id from a prior generate should return status verified; a random/unknown id returns 404. Do not test frontend."
+    -agent: "testing"
+    -message: "✅ ALL 3 BACKEND ENDPOINTS PASSED. Test 1: SSE generation endpoint working perfectly - streamed 1682 delta events and returned valid 5832-char HTML counter app via real gpt-5.4 LLM. Test 2: Validation working - mobile returns 422 with honest message, empty objective returns 400. Test 3: Verify endpoint working - valid ID returns 200 with verified status, invalid ID returns 404. No issues found. Backend implementation is solid and ready for production."
