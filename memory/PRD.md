@@ -159,6 +159,15 @@ Validation: `tsc --noEmit` clean, `vite build` clean, Stage 1 visually unchanged
   Empty/generating states show only a small honest message over the artwork; the generated app renders as an
   iframe layer over that area.
 
+### Phase 5.2 — Workstation navigation correction (DONE 2026-06)
+- Top module nav row (Computer / Developer / Media / Builder / Barehands / System / Search) removed from the
+  Workstation. Replaced with a glass **HOME** button top-left (returns to Home) and the shared **MENU** button
+  top-right in the same style/position as Home (Home, Builder live; Media, Barehands, Computer, Developer,
+  System marked "Soon").
+- Preview toolbar reduced to: Preview · Edit | open-in-new-tab · Rebuild | Download App · Download Code |
+  Full Screen + status chip. **Inspect removed** for Milestone 1. No Share / Publish / Manage.
+- bg_c artwork remains visible behind the preview; empty/generating shows only a small centered honest message.
+
 ## Backlog
 ### P0 (next)
 - New JARVIS interface implementation + real execution architecture (awaiting user's visual reference).

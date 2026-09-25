@@ -4,10 +4,10 @@ import { Home, Monitor, Code2, PlaySquare, Box, Activity, Settings, Menu as Menu
 const DESTINATIONS = [
   { id: 'home', label: 'Home', icon: Home, live: true },
   { id: 'builder', label: 'Builder', icon: Box, live: true },
-  { id: 'computer', label: 'Computer', icon: Monitor, live: false },
-  { id: 'developer', label: 'Developer', icon: Code2, live: false },
   { id: 'media', label: 'Media', icon: PlaySquare, live: false },
   { id: 'barehands', label: 'Barehands', icon: Activity, live: false },
+  { id: 'computer', label: 'Computer', icon: Monitor, live: false },
+  { id: 'developer', label: 'Developer', icon: Code2, live: false },
   { id: 'system', label: 'System', icon: Settings, live: false },
 ] as const;
 

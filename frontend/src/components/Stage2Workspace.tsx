@@ -4,13 +4,6 @@ import { AgentState, AppCategory, Artifact, TimelineEntry } from '../types';
 import { generateWebApp, markVerified } from '../utils/api';
 import {
   Home,
-  Monitor,
-  Code2,
-  PlaySquare,
-  Box,
-  Activity,
-  Settings,
-  Search,
   Eye,
   Maximize2,
   Minimize2,
@@ -29,6 +22,7 @@ import {
   FileCode2,
 } from 'lucide-react';
 import workstationBg from '../assets/images/bg_c.png';
+import { JarvisMenu } from './JarvisMenu';
 
 interface Stage2WorkspaceProps {
   initialPrompt: string;
@@ -36,16 +30,6 @@ interface Stage2WorkspaceProps {
   onReturnHome: () => void;
   onOpenIntake: () => void;
 }
-
-const NAV = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'computer', label: 'Computer', icon: Monitor },
-  { id: 'developer', label: 'Developer', icon: Code2 },
-  { id: 'media', label: 'Media', icon: PlaySquare },
-  { id: 'builder', label: 'Builder', icon: Box },
-  { id: 'barehands', label: 'Barehands', icon: Activity },
-  { id: 'system', label: 'System', icon: Settings },
-] as const;
 
 const AGENT_LINE: Record<AgentState, string> = {
   WAITING: 'JARVIS is waiting',
@@ -69,7 +53,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
   onReturnHome,
   onOpenIntake,
 }) => {
-  const [viewMode, setViewMode] = useState<'preview' | 'edit' | 'inspect'>('preview');
+  const [viewMode, setViewMode] = useState<'preview' | 'edit'>('preview');
   const [sourceDraft, setSourceDraft] = useState('');
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [agentState, setAgentState] = useState<AgentState>('WAITING');
@@ -405,47 +389,29 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
         className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
       />
 
-      {/* TOP NAVIGATION */}
-      <nav className="relative z-10 h-14 shrink-0 flex items-center justify-center border-b border-[rgba(95,160,255,0.16)] bg-[rgba(4,10,20,0.62)] backdrop-blur-xl">
-        <div className="flex items-center gap-1">
-          {NAV.map(({ id, label, icon: Icon }) => {
-            const active = id === 'builder';
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => {
-                  if (id === 'home') return onReturnHome();
-                  if (id === 'builder') return onOpenIntake();
-                  setNotice(`${label} is not available in this milestone`);
-                }}
-                className={`relative flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
-                  active ? 'text-[#F5F8FF]' : 'text-[#8EA1BA] hover:text-[#DCE5F2]'
-                }`}
-                data-testid={`nav-${id}`}
-              >
-                <Icon className={`w-4 h-4 ${active ? 'text-[#5C9DFF]' : ''}`} />
-                <span>{label}</span>
-                {active && (
-                  <span className="absolute left-3 right-3 -bottom-[11px] h-[2px] bg-[#2F7CFF] shadow-[0_0_10px_rgba(47,124,255,0.75)]" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-
+      {/* WORKSTATION CHROME — Home (left) + MENU (right). No module nav in Milestone 1. */}
+      <div className="relative z-20 shrink-0 flex items-center justify-between px-3 pt-[10px] pb-2">
         <button
           type="button"
-          onClick={() => setNotice('Search is not available in this milestone')}
-          className="absolute right-6 text-[#8EA1BA] hover:text-[#F5F8FF] transition-colors"
-          aria-label="Search"
-          data-testid="nav-search"
+          onClick={onReturnHome}
+          className="flex items-center gap-2 px-3.5 h-10 rounded-lg text-[12px] tracking-[0.12em] text-[#DCE5F2] hover:text-white transition-all"
+          style={{
+            background: 'linear-gradient(180deg, rgba(10,22,44,0.66) 0%, rgba(6,13,26,0.66) 100%)',
+            border: '1px solid rgba(95,160,255,0.42)',
+            boxShadow: '0 0 18px rgba(47,124,255,0.22), inset 0 1px 0 rgba(255,255,255,0.06)',
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+          }}
+          data-testid="workstation-home-button"
         >
-          <Search className="w-[18px] h-[18px]" />
+          <Home className="w-4 h-4 text-[#7FB4FF]" />
+          HOME
         </button>
-      </nav>
 
-      <div className="relative z-10 flex-1 min-h-0 flex gap-4 p-4">
+        <JarvisMenu onGoHome={onReturnHome} onGoBuilder={onOpenIntake} />
+      </div>
+
+      <div className="relative z-10 flex-1 min-h-0 flex gap-4 px-4 pb-4">
         {/* LEFT — one open console surface */}
         {!isFullScreen && (
           <section
@@ -699,12 +665,11 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
               'view-edit-button',
               !artifact?.source
             )}
-            {segButton('Inspect', Code2, viewMode === 'inspect', () => setViewMode('inspect'), 'view-inspect-button')}
 
             <span className="w-px h-4 mx-1 bg-[rgba(95,160,255,0.22)]" />
 
             {iconAction('Open in new tab', ExternalLink, openPopout, 'preview-popout-button', !artifact?.source)}
-            {iconAction('Rebuild', RotateCw, rebuild, 'preview-rebuild-button', isBusy || !objective.trim())}
+            {textAction('Rebuild', RotateCw, rebuild, 'preview-rebuild-button', isBusy || !objective.trim())}
 
             <span className="w-px h-4 mx-1 bg-[rgba(95,160,255,0.22)]" />
 
@@ -779,29 +744,6 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                     Cancel
                   </button>
                 </div>
-              </div>
-            )}
-
-            {viewMode === 'inspect' && (
-              <div
-                className="w-full h-full p-4 overflow-y-auto rounded-xl"
-                style={{ background: 'rgba(4,10,20,0.6)', border: '1px solid rgba(95,160,255,0.16)' }}
-                data-testid="inspect-panel"
-              >
-                {artifact?.source ? (
-                  <pre className="text-[12px] font-mono-jarvis leading-relaxed text-[#7FB4FF] whitespace-pre-wrap">
-                    {artifact.source}
-                  </pre>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-center">
-                    <div className="space-y-1.5 max-w-sm">
-                      <div className="text-sm text-[#9FB0C6]">No source to inspect</div>
-                      <p className="text-[13px] text-[#7C8DA6] leading-relaxed">
-                        Source appears here once a run produces an artifact.
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
