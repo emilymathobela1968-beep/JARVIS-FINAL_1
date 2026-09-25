@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { HomeScreen } from './components/HomeScreen';
 import { BuilderScreen } from './components/BuilderScreen';
 import { Stage2Workspace } from './components/Stage2Workspace';
+import { ImageGenerationScreen } from './components/ImageGenerationScreen';
+import { ComputerWorkspace } from './components/ComputerWorkspace';
 import { AppCategory } from './types';
 
-type Stage = 'home' | 'builder' | 'workstation';
+type Stage = 'home' | 'builder' | 'workstation' | 'image' | 'computer';
 
 export default function App() {
   const [stage, setStage] = useState<Stage>('home');
@@ -13,6 +15,11 @@ export default function App() {
   const [runKey, setRunKey] = useState(0);
 
   const goHome = () => setStage('home');
+  const nav = {
+    onOpenBuilder: () => setStage('builder'),
+    onOpenImageGeneration: () => setStage('image'),
+    onOpenComputer: () => setStage('computer'),
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -30,7 +37,9 @@ export default function App() {
             setDirective(text);
             setStage('builder');
           }}
-          onOpenBuilder={() => setStage('builder')}
+          onOpenBuilder={nav.onOpenBuilder}
+          onOpenImageGeneration={nav.onOpenImageGeneration}
+          onOpenComputer={nav.onOpenComputer}
         />
       )}
 
@@ -52,7 +61,25 @@ export default function App() {
           initialPrompt={directive}
           appType={appType}
           onReturnHome={goHome}
-          onOpenIntake={() => setStage('builder')}
+          onOpenIntake={nav.onOpenBuilder}
+          onOpenImageGeneration={nav.onOpenImageGeneration}
+          onOpenComputer={nav.onOpenComputer}
+        />
+      )}
+
+      {stage === 'image' && (
+        <ImageGenerationScreen
+          onReturnHome={goHome}
+          onOpenBuilder={nav.onOpenBuilder}
+          onOpenComputer={nav.onOpenComputer}
+        />
+      )}
+
+      {stage === 'computer' && (
+        <ComputerWorkspace
+          onReturnHome={goHome}
+          onOpenBuilder={nav.onOpenBuilder}
+          onOpenImageGeneration={nav.onOpenImageGeneration}
         />
       )}
     </div>

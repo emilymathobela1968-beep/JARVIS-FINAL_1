@@ -29,6 +29,8 @@ interface Stage2WorkspaceProps {
   appType: AppCategory | null;
   onReturnHome: () => void;
   onOpenIntake: () => void;
+  onOpenImageGeneration: () => void;
+  onOpenComputer: () => void;
 }
 
 const AGENT_LINE: Record<AgentState, string> = {
@@ -52,8 +54,9 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
   appType,
   onReturnHome,
   onOpenIntake,
-}) => {
-  const [viewMode, setViewMode] = useState<'preview' | 'edit'>('preview');
+  onOpenImageGeneration,
+  onOpenComputer,
+}) => {  const [viewMode, setViewMode] = useState<'preview' | 'edit'>('preview');
   const [sourceDraft, setSourceDraft] = useState('');
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [agentState, setAgentState] = useState<AgentState>('WAITING');
@@ -408,7 +411,12 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
           HOME
         </button>
 
-        <JarvisMenu onGoHome={onReturnHome} onGoBuilder={onOpenIntake} />
+        <JarvisMenu
+          onGoHome={onReturnHome}
+          onGoBuilder={onOpenIntake}
+          onGoImageGeneration={onOpenImageGeneration}
+          onGoComputer={onOpenComputer}
+        />
       </div>
 
       <div className="relative z-10 flex-1 min-h-0 flex gap-4 px-4 pb-4">

@@ -1,19 +1,48 @@
 import React, { useRef, useState } from 'react';
-import { Paperclip, Mic, SendHorizontal } from 'lucide-react';
+import { Paperclip, Mic, SendHorizontal, MicOff } from 'lucide-react';
 import { JarvisLogo } from './JarvisLogo';
 import { JarvisMenu } from './JarvisMenu';
+import { RadarWaveform, WaveState } from './RadarWaveform';
+import { useMicAmplitude } from '../utils/micAmplitude';
 import homeBg from '../assets/images/bg_a.png';
 
 interface HomeScreenProps {
   /** Home collects the objective and always hands it to the Builder screen. */
   onSubmit: (directive: string) => void;
   onOpenBuilder: () => void;
+  onOpenImageGeneration: () => void;
+  onOpenComputer: () => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSubmit, onOpenBuilder }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({
+  onSubmit,
+  onOpenBuilder,
+  onOpenImageGeneration,
+  onOpenComputer,
+}) => {
   const [value, setValue] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const { state: micState, levelRef } = useMicAmplitude(listening);
+
+  const waveState: WaveState =
+    micState === 'denied' || micState === 'unsupported'
+      ? 'blocked'
+      : listening && micState === 'live'
+      ? 'listening'
+      : listening
+      ? 'thinking'
+      : 'idle';
+
+  const toggleMic = () => {
+    setListening((v) => !v);
+    if (!listening) {
+      setNotice('Listening — live waveform only. Speech-to-text is not connected yet.');
+    } else {
+      setNotice(null);
+    }
+  };
 
   const submit = () => {
     const text = value.trim();
@@ -31,6 +60,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSubmit, onOpenBuilder 
         className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
       />
 
+      {/* Live waveform exactly over the artwork's blue centre line. */}
+      <RadarWaveform cx={836} cy={309} halfLen={346} state={waveState} levelRef={levelRef} />
+
       {/* Top-left live logo — small breathing room only. */}
       <div className="absolute top-[10px] left-[10px] z-20" data-testid="home-logo">
         <JarvisLogo size="md" />
@@ -38,7 +70,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSubmit, onOpenBuilder 
 
       {/* Top-right live menu */}
       <div className="absolute top-[10px] right-[14px] z-30">
-        <JarvisMenu onGoBuilder={onOpenBuilder} />
+        <JarvisMenu
+          onGoBuilder={onOpenBuilder}
+          onGoImageGeneration={onOpenImageGeneration}
+          onGoComputer={onOpenComputer}
+        />
       </div>
 
       {/* Command panel — lower third, clear of the radar circle. */}
@@ -96,13 +132,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSubmit, onOpenBuilder 
 
             <button
               type="button"
-              onClick={() => setNotice('Voice is not connected yet')}
-              className="w-9 h-9 shrink-0 rounded-lg flex items-center justify-center text-[#8EA1BA] hover:text-[#7FB4FF] transition-colors"
-              style={{ background: 'rgba(8,18,36,0.6)', border: '1px solid rgba(95,160,255,0.28)' }}
-              aria-label="Voice"
+              onClick={toggleMic}
+              className={`w-9 h-9 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
+                listening ? 'text-[#7FB4FF]' : 'text-[#8EA1BA] hover:text-[#7FB4FF]'
+              }`}
+              style={{
+                background: listening ? 'rgba(47,124,255,0.22)' : 'rgba(8,18,36,0.6)',
+                border: `1px solid rgba(95,160,255,${listening ? 0.6 : 0.28})`,
+              }}
+              aria-label={listening ? 'Stop listening' : 'Listen'}
               data-testid="home-mic-button"
             >
-              <Mic className="w-4 h-4" />
+              {micState === 'denied' || micState === 'unsupported' ? (
+                <MicOff className="w-4 h-4 text-[#FF7A90]" />
+              ) : (
+                <Mic className="w-4 h-4" />
+              )}
             </button>
 
             <button
@@ -122,9 +167,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSubmit, onOpenBuilder 
             </button>
           </div>
 
-          {notice && (
+          {(notice || micState === 'denied' || micState === 'unsupported') && (
             <div className="mt-2 text-[11px] text-[#8EA1BA]" data-testid="home-notice">
-              {notice}
+              {micState === 'denied'
+                ? 'Microphone permission denied — the waveform stays in idle state.'
+                : micState === 'unsupported'
+                ? 'This browser does not expose microphone audio.'
+                : notice}
             </div>
           )}
         </div>

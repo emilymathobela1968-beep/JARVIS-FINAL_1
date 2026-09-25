@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Mic, Hammer } from 'lucide-react';
+import { Mic, MicOff, Hammer } from 'lucide-react';
 import { JarvisLogo } from './JarvisLogo';
+import { RadarWaveform, WaveState } from './RadarWaveform';
+import { useMicAmplitude } from '../utils/micAmplitude';
 import { AppCategory } from '../types';
 import builderBg from '../assets/images/bg_b.png';
 
@@ -19,6 +21,22 @@ export const BuilderScreen: React.FC<BuilderScreenProps> = ({ initialDirective =
   const [value, setValue] = useState(initialDirective);
   const [type, setType] = useState<AppCategory>('web');
   const [notice, setNotice] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
+  const { state: micState, levelRef } = useMicAmplitude(listening);
+
+  const waveState: WaveState =
+    micState === 'denied' || micState === 'unsupported'
+      ? 'blocked'
+      : listening && micState === 'live'
+      ? 'listening'
+      : listening
+      ? 'thinking'
+      : 'idle';
+
+  const toggleMic = () => {
+    setListening((v) => !v);
+    setNotice(listening ? null : 'Listening — live waveform only. Speech-to-text is not connected yet.');
+  };
 
   const build = () => {
     const text = value.trim();
@@ -39,6 +57,9 @@ export const BuilderScreen: React.FC<BuilderScreenProps> = ({ initialDirective =
       <div className="absolute top-[10px] left-[10px] z-20" data-testid="builder-logo">
         <JarvisLogo size="md" />
       </div>
+
+      {/* Live waveform exactly over the artwork's blue centre line. */}
+      <RadarWaveform cx={837} cy={306} halfLen={336} state={waveState} levelRef={levelRef} />
 
       {/* Build panel — lower third, clear of the radar circle. */}
       <div className="absolute left-0 right-0 bottom-[5vh] z-20 flex flex-col items-center px-6">
@@ -71,13 +92,22 @@ export const BuilderScreen: React.FC<BuilderScreenProps> = ({ initialDirective =
 
             <button
               type="button"
-              onClick={() => setNotice('Voice is not connected yet')}
-              className="w-10 h-10 shrink-0 rounded-lg flex items-center justify-center text-[#8EA1BA] hover:text-[#7FB4FF] transition-colors"
-              style={{ background: 'rgba(8,18,36,0.6)', border: '1px solid rgba(95,160,255,0.28)' }}
-              aria-label="Voice"
+              onClick={toggleMic}
+              className={`w-10 h-10 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
+                listening ? 'text-[#7FB4FF]' : 'text-[#8EA1BA] hover:text-[#7FB4FF]'
+              }`}
+              style={{
+                background: listening ? 'rgba(47,124,255,0.22)' : 'rgba(8,18,36,0.6)',
+                border: `1px solid rgba(95,160,255,${listening ? 0.6 : 0.28})`,
+              }}
+              aria-label={listening ? 'Stop listening' : 'Listen'}
               data-testid="builder-mic-button"
             >
-              <Mic className="w-4 h-4" />
+              {micState === 'denied' || micState === 'unsupported' ? (
+                <MicOff className="w-4 h-4 text-[#FF7A90]" />
+              ) : (
+                <Mic className="w-4 h-4" />
+              )}
             </button>
 
             <button

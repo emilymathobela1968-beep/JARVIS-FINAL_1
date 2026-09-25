@@ -96,6 +96,116 @@ export async function markVerified(id: string): Promise<void> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Native image generation (provider key stays server-side)
+// ---------------------------------------------------------------------------
+
+export interface ImageRequest {
+  prompt: string;
+  style: string;
+  aspect_ratio: string;
+  quality: string;
+}
+
+export interface ImageResult {
+  id: string;
+  status: 'generating' | 'completed' | 'failed' | 'blocked';
+  image_url: string | null;
+  error: string | null;
+}
+
+/** Absolute URL for a file served by the backend. */
+export const absoluteUrl = (path: string) => `${BACKEND_URL}${path}`;
+
+export async function generateImage(body: ImageRequest): Promise<ImageResult> {
+  const res = await fetch(`${API_BASE}/image-generation/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    let detail = `Request failed (HTTP ${res.status})`;
+    try {
+      const j = await res.json();
+      if (j?.detail) detail = typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail);
+    } catch {
+      /* ignore */
+    }
+    return { id: '', status: 'failed', image_url: null, error: detail };
+  }
+  return res.json();
+}
+
+export async function imageProviderStatus(): Promise<{ provider: string; model: string; connected: boolean }> {
+  const res = await fetch(`${API_BASE}/image-generation/status`);
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// Windows companion agent (relay)
+// ---------------------------------------------------------------------------
+
+export interface AgentStatus {
+  state: 'connected' | 'not_running';
+  link_id?: string | null;
+  hostname?: string;
+  version?: string;
+  capabilities?: string[];
+  agents_online?: number;
+}
+
+export interface WindowsIntent {
+  understood: boolean;
+  action?: string;
+  params?: Record<string, unknown>;
+  summary?: string;
+  requires_confirmation?: boolean;
+  message?: string;
+}
+
+export interface WindowsCommandResult {
+  status: 'completed' | 'failed' | 'agent_offline' | 'confirmation_required';
+  id?: string;
+  action?: string;
+  data?: unknown;
+  error?: string | null;
+  message?: string;
+}
+
+export async function windowsPair(): Promise<{ link_id: string; code: string; expires_at: string }> {
+  const res = await fetch(`${API_BASE}/windows/pair`, { method: 'POST' });
+  return res.json();
+}
+
+export async function windowsStatus(linkId?: string | null): Promise<AgentStatus> {
+  const q = linkId ? `?link_id=${encodeURIComponent(linkId)}` : '';
+  const res = await fetch(`${API_BASE}/windows/status${q}`);
+  return res.json();
+}
+
+export async function windowsIntent(text: string): Promise<WindowsIntent> {
+  const res = await fetch(`${API_BASE}/windows/intent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+  return res.json();
+}
+
+export async function windowsCommand(
+  linkId: string,
+  action: string,
+  params: Record<string, unknown> = {},
+  confirmed = false
+): Promise<WindowsCommandResult> {
+  const res = await fetch(`${API_BASE}/windows/command`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ link_id: linkId, action, params, confirmed }),
+  });
+  return res.json();
+}
+
 /**
  * Injects a tiny probe that reports real render + first interaction from inside the
  * sandboxed iframe via postMessage. The probe is added ONLY to the render copy — the

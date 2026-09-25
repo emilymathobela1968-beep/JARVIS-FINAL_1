@@ -1,0 +1,87 @@
+{
+  "app_paths": {},
+  "contacts": {},
+  "preferences": {},
+  "recent_tasks": [
+    {
+      "action": "office.word.create",
+      "ok": false,
+      "detail": "Word automation requires Windows 11 with Office installed.",
+      "at": "2026-09-25T19:26:17.830828+00:00"
+    },
+    {
+      "action": "app.launch",
+      "ok": false,
+      "detail": "This action requires Windows 11 (agent is running on a non-Windows host).",
+      "at": "2026-09-25T19:26:15.465829+00:00"
+    },
+    {
+      "action": "system.info",
+      "ok": true,
+      "detail": "{\"disks\": [{\"drive\": \"/\", \"total_gb\": 291.4, \"used_gb\": 49.0, \"free_gb\": 242.4}]}",
+      "at": "2026-09-25T19:26:15.274057+00:00"
+    },
+    {
+      "action": "system.info",
+      "ok": true,
+      "detail": "{\"local_time\": \"19:26:15\", \"date\": \"2026-09-25\", \"timezone\": \"UTC\"}",
+      "at": "2026-09-25T19:26:15.090989+00:00"
+    },
+    {
+      "action": "agent.ping",
+      "ok": true,
+      "detail": "{\"pong\": true, \"host\": \"agent-env-d29b8c03-aa7c-4a69-978c-7aa729e94876\", \"windows\": false}",
+      "at": "2026-09-25T19:26:14.901355+00:00"
+    },
+    {
+      "action": "office.word.create",
+      "ok": false,
+      "detail": "Word automation requires Windows 11 with Office installed.",
+      "at": "2026-09-25T19:21:17.457171+00:00"
+    },
+    {
+      "action": "app.launch",
+      "ok": false,
+      "detail": "This action requires Windows 11 (agent is running on a non-Windows host).",
+      "at": "2026-09-25T19:21:14.517576+00:00"
+    },
+    {
+      "action": "system.info",
+      "ok": true,
+      "detail": "{\"disks\": [{\"drive\": \"/\", \"total_gb\": 291.4, \"used_gb\": 49.4, \"free_gb\": 241.9}]}",
+      "at": "2026-09-25T19:21:14.342764+00:00"
+    },
+    {
+      "action": "system.info",
+      "ok": true,
+      "detail": "{\"local_time\": \"19:21:14\", \"date\": \"2026-09-25\", \"timezone\": \"UTC\"}",
+      "at": "2026-09-25T19:21:14.111639+00:00"
+    },
+    {
+      "action": "agent.ping",
+      "ok": true,
+      "detail": "{\"pong\": true, \"host\": \"agent-env-d29b8c03-aa7c-4a69-978c-7aa729e94876\", \"windows\": false}",
+      "at": "2026-09-25T19:21:12.900510+00:00"
+    },
+    {
+      "action": "app.launch",
+      "ok": false,
+      "detail": "This action requires Windows 11 (agent is running on a non-Windows host).",
+      "at": "2026-09-25T19:15:46.107793+00:00"
+    },
+    {
+      "action": "system.info",
+      "ok": true,
+      "detail": "{\"local_time\": \"19:15:45\", \"date\": \"2026-09-25\", \"timezone\": \"UTC\"}",
+      "at": "2026-09-25T19:15:45.926864+00:00"
+    },
+    {
+      "action": "agent.ping",
+      "ok": true,
+      "detail": "{\"pong\": true, \"host\": \"agent-env-d29b8c03-aa7c-4a69-978c-7aa729e94876\", \"windows\": false}",
+      "at": "2026-09-25T19:15:45.681327+00:00"
+    }
+  ],
+  "documents": [],
+  "failed_routes": {}
+}

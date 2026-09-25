@@ -4,9 +4,9 @@ import { Home, Monitor, Code2, PlaySquare, Box, Activity, Settings, Menu as Menu
 const DESTINATIONS = [
   { id: 'home', label: 'Home', icon: Home, live: true },
   { id: 'builder', label: 'Builder', icon: Box, live: true },
-  { id: 'media', label: 'Media', icon: PlaySquare, live: false },
+  { id: 'image-generation', label: 'Image Generation', icon: PlaySquare, live: true },
+  { id: 'computer', label: 'Computer', icon: Monitor, live: true },
   { id: 'barehands', label: 'Barehands', icon: Activity, live: false },
-  { id: 'computer', label: 'Computer', icon: Monitor, live: false },
   { id: 'developer', label: 'Developer', icon: Code2, live: false },
   { id: 'system', label: 'System', icon: Settings, live: false },
 ] as const;
@@ -14,9 +14,16 @@ const DESTINATIONS = [
 interface JarvisMenuProps {
   onGoHome?: () => void;
   onGoBuilder?: () => void;
+  onGoImageGeneration?: () => void;
+  onGoComputer?: () => void;
 }
 
-export const JarvisMenu: React.FC<JarvisMenuProps> = ({ onGoHome, onGoBuilder }) => {
+export const JarvisMenu: React.FC<JarvisMenuProps> = ({
+  onGoHome,
+  onGoBuilder,
+  onGoImageGeneration,
+  onGoComputer,
+}) => {
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -79,6 +86,16 @@ export const JarvisMenu: React.FC<JarvisMenuProps> = ({ onGoHome, onGoBuilder })
                 if (id === 'builder') {
                   setOpen(false);
                   onGoBuilder?.();
+                  return;
+                }
+                if (id === 'image-generation') {
+                  setOpen(false);
+                  onGoImageGeneration?.();
+                  return;
+                }
+                if (id === 'computer') {
+                  setOpen(false);
+                  onGoComputer?.();
                   return;
                 }
                 setNotice(`${label} is not connected yet`);

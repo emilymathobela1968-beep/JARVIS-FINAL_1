@@ -15,6 +15,9 @@ from datetime import datetime, timezone
 
 from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone
 
+from image_generation import register_image_routes
+from windows_relay import register_windows_routes
+
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -218,6 +221,8 @@ async def builder_verify(generation_id: str):
     return {"id": generation_id, "status": "verified"}
 
 # Include the router in the main app
+api_router.include_router(register_image_routes(db))
+api_router.include_router(register_windows_routes(db))
 app.include_router(api_router)
 
 app.add_middleware(
