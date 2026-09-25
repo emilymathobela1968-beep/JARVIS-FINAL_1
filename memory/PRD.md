@@ -148,6 +148,17 @@ Validation: `tsc --noEmit` clean, `vite build` clean, Stage 1 visually unchanged
 - Verified by browser automation: tip-calculator generated via SSE, rendered in the sandbox, flipped to
   `verified` on real interaction; full screen, edit mode and mobile (390px) checked, zero horizontal overflow.
 
+### Phase 5.1 — Official logo asset + Emergent-style preview toolbar (DONE 2026-06)
+- Official logo `Jarvis_Logo.webp` (transparent) saved as `assets/images/jarvis_logo.png` and a padding-trimmed
+  copy `jarvis_logo_trimmed.png` (1557×378, design untouched). `JarvisLogo.tsx` is now a live `<img>` using the
+  trimmed asset; old SVG wordmark and `jarvis_logo_chrome.png` usage removed. Home and Builder use identical
+  size (h-9) and position (top 10px / left 10px).
+- Workstation: removed the heavy opaque preview container — bg_c artwork stays visible behind the preview.
+  Large block buttons replaced with one compact glass toolbar: Preview · Edit · Inspect | Open in new tab ·
+  Rebuild | Download App (.html) · Download Code (.source.html) | Full Screen + status chip. No Share/Publish/Manage.
+  Empty/generating states show only a small honest message over the artwork; the generated app renders as an
+  iframe layer over that area.
+
 ## Backlog
 ### P0 (next)
 - New JARVIS interface implementation + real execution architecture (awaiting user's visual reference).

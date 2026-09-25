@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import intakeArtwork from '../assets/images/jarvis_builder_intake.png';
-import chromeLogo from '../assets/images/jarvis_logo_chrome.png';
+import chromeLogo from '../assets/images/jarvis_logo_trimmed.png';
 import { AppCategory } from '../types';
 import { useArtworkBox, placeIn, EDGE_FEATHER, FILL_LAYER, ArtworkRect } from '../utils/artwork';
 

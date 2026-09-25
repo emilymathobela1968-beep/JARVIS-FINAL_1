@@ -23,6 +23,10 @@ import {
   Check,
   AlertTriangle,
   X,
+  ExternalLink,
+  RotateCw,
+  Download,
+  FileCode2,
 } from 'lucide-react';
 import workstationBg from '../assets/images/bg_c.png';
 
@@ -291,7 +295,42 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
     runGeneration(next, `Objective updated: ${next}`);
   };
 
-  const toolButton = (
+  const fileSlug = () =>
+    (objective || 'jarvis-app')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 40) || 'jarvis-app';
+
+  const downloadSource = (extension: string) => {
+    if (!artifact?.source) return;
+    const blob = new Blob([artifact.source], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${fileSlug()}${extension}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const openPopout = () => {
+    if (!artifact?.source) return;
+    const w = window.open('', '_blank');
+    if (!w) {
+      setNotice('Pop-out was blocked by the browser');
+      return;
+    }
+    w.document.write(artifact.source);
+    w.document.close();
+  };
+
+  const rebuild = () => {
+    if (isBusy || !objective.trim()) return;
+    runGeneration(objective, `Rebuild: ${objective}`);
+  };
+
+  /** Compact segmented control (Preview / Edit / Inspect). */
+  const segButton = (
     label: string,
     Icon: React.ComponentType<{ className?: string }>,
     active: boolean,
@@ -303,28 +342,57 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center gap-2.5 px-5 h-[47px] rounded-lg text-[15px] transition-all disabled:opacity-35 disabled:cursor-not-allowed"
-      style={
-        active
-          ? {
-              color: '#F5F8FF',
-              background: 'linear-gradient(180deg, #2F7CFF 0%, #1B55CC 100%)',
-              border: '1px solid rgba(120, 178, 255, 0.85)',
-              boxShadow: '0 0 18px rgba(47, 124, 255, 0.32), inset 0 1px 0 rgba(255,255,255,0.18)',
-            }
-          : {
-              color: '#8EA1BA',
-              background: 'linear-gradient(180deg, rgba(13, 24, 44, 0.85) 0%, rgba(8, 15, 29, 0.85) 100%)',
-              border: '1px solid rgba(47, 124, 255, 0.24)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
-            }
-      }
+      className={`flex items-center gap-1.5 px-3 h-7 rounded-md text-[12px] transition-colors disabled:opacity-35 disabled:cursor-not-allowed ${
+        active ? 'text-white bg-[rgba(47,124,255,0.85)]' : 'text-[#9FB0C6] hover:text-[#EAF2FF] hover:bg-[rgba(47,124,255,0.16)]'
+      }`}
       data-testid={testId}
     >
-      <Icon className="w-[18px] h-[18px]" />
+      <Icon className="w-3.5 h-3.5" />
       <span>{label}</span>
     </button>
   );
+
+  /** Compact icon action in the preview toolbar. */
+  const iconAction = (
+    title: string,
+    Icon: React.ComponentType<{ className?: string }>,
+    onClick: () => void,
+    testId: string,
+    disabled = false
+  ) => (
+    <button
+      type="button"
+      title={title}
+      aria-label={title}
+      onClick={onClick}
+      disabled={disabled}
+      className="w-7 h-7 rounded-md flex items-center justify-center text-[#9FB0C6] hover:text-[#EAF2FF] hover:bg-[rgba(47,124,255,0.16)] transition-colors disabled:opacity-35 disabled:cursor-not-allowed"
+      data-testid={testId}
+    >
+      <Icon className="w-3.5 h-3.5" />
+    </button>
+  );
+
+  /** Compact text action (downloads). */
+  const textAction = (
+    label: string,
+    Icon: React.ComponentType<{ className?: string }>,
+    onClick: () => void,
+    testId: string,
+    disabled = false
+  ) => (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="flex items-center gap-1.5 px-2.5 h-7 rounded-md text-[12px] text-[#9FB0C6] hover:text-[#EAF2FF] hover:bg-[rgba(47,124,255,0.16)] transition-colors disabled:opacity-35 disabled:cursor-not-allowed"
+      data-testid={testId}
+    >
+      <Icon className="w-3.5 h-3.5" />
+      <span>{label}</span>
+    </button>
+  );
+
 
   return (
     <div className="relative w-screen h-screen overflow-hidden text-[#F5F8FF] flex flex-col font-sans" data-testid="workstation-screen">
@@ -606,52 +674,76 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
           </section>
         )}
 
-        {/* RIGHT — preview workspace */}
+        {/* RIGHT — preview workspace: the artwork stays visible behind it. */}
         <section className="flex-1 min-w-0 flex flex-col" data-testid="workstation-preview-pane">
-          <div className="flex items-center justify-between gap-3 px-1 pb-3">
-            <div className="flex items-center gap-2.5">
-              {toolButton('Preview', Eye, viewMode === 'preview', () => setViewMode('preview'), 'view-preview-button')}
-              {toolButton(
-                'Edit',
-                PenLine,
-                viewMode === 'edit',
-                () => {
-                  setSourceDraft(artifact?.source ?? '');
-                  setViewMode('edit');
-                },
-                'view-edit-button',
-                !artifact?.source
-              )}
-              {toolButton('Inspect', Code2, viewMode === 'inspect', () => setViewMode('inspect'), 'view-inspect-button')}
-              {toolButton(
-                isFullScreen ? 'Exit Full Screen' : 'Full Screen',
-                isFullScreen ? Minimize2 : Maximize2,
-                isFullScreen,
-                () => setIsFullScreen((v) => !v),
-                'preview-fullscreen-button'
-              )}
-            </div>
+          {/* Compact preview toolbar */}
+          <div
+            className="flex items-center gap-1 px-2 h-10 rounded-lg mb-2 overflow-x-auto"
+            style={{
+              background: 'rgba(5,12,24,0.42)',
+              border: '1px solid rgba(95,160,255,0.16)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+            }}
+            data-testid="preview-toolbar"
+          >
+            {segButton('Preview', Eye, viewMode === 'preview', () => setViewMode('preview'), 'view-preview-button')}
+            {segButton(
+              'Edit',
+              PenLine,
+              viewMode === 'edit',
+              () => {
+                setSourceDraft(artifact?.source ?? '');
+                setViewMode('edit');
+              },
+              'view-edit-button',
+              !artifact?.source
+            )}
+            {segButton('Inspect', Code2, viewMode === 'inspect', () => setViewMode('inspect'), 'view-inspect-button')}
 
-            <div className="text-xs text-[#7C8DA6] font-mono-jarvis pr-2" data-testid="artifact-status-chip">
+            <span className="w-px h-4 mx-1 bg-[rgba(95,160,255,0.22)]" />
+
+            {iconAction('Open in new tab', ExternalLink, openPopout, 'preview-popout-button', !artifact?.source)}
+            {iconAction('Rebuild', RotateCw, rebuild, 'preview-rebuild-button', isBusy || !objective.trim())}
+
+            <span className="w-px h-4 mx-1 bg-[rgba(95,160,255,0.22)]" />
+
+            {textAction('Download App', Download, () => downloadSource('.html'), 'download-app-button', !artifact?.source)}
+            {textAction('Download Code', FileCode2, () => downloadSource('.source.html'), 'download-code-button', !artifact?.source)}
+
+            <span className="w-px h-4 mx-1 bg-[rgba(95,160,255,0.22)]" />
+
+            {textAction(
+              isFullScreen ? 'Exit Full Screen' : 'Full Screen',
+              isFullScreen ? Minimize2 : Maximize2,
+              () => setIsFullScreen((v) => !v),
+              'preview-fullscreen-button'
+            )}
+
+            <span className="ml-auto pl-3 pr-1 text-[11px] text-[#7C8DA6] font-mono-jarvis shrink-0" data-testid="artifact-status-chip">
               {artifact ? `status: ${artifact.status}` : 'status: none'}
-            </div>
+            </span>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-hidden rounded-2xl border border-[rgba(95,160,255,0.2)] bg-[rgba(5,12,24,0.66)] backdrop-blur-2xl">
+          <div className="flex-1 min-h-0 overflow-hidden rounded-xl">
             {viewMode === 'preview' && (
               <GeneratedArtifact artifact={artifact} streamedChars={streamedChars} onVerified={onVerified} />
             )}
 
             {viewMode === 'edit' && (
-              <div className="w-full h-full flex flex-col p-4" data-testid="edit-panel">
+              <div
+                className="w-full h-full flex flex-col p-3 rounded-xl"
+                style={{ background: 'rgba(4,10,20,0.6)', border: '1px solid rgba(95,160,255,0.16)' }}
+                data-testid="edit-panel"
+              >
                 <textarea
                   value={sourceDraft}
                   onChange={(e) => setSourceDraft(e.target.value)}
                   spellCheck={false}
-                  className="flex-1 min-h-0 w-full rounded-xl bg-[rgba(3,8,16,0.85)] border border-[rgba(95,160,255,0.28)] px-3 py-3 text-[12px] font-mono-jarvis leading-relaxed text-[#9FC6FF] outline-none focus:border-[rgba(95,160,255,0.6)] resize-none"
+                  className="flex-1 min-h-0 w-full rounded-lg bg-[rgba(3,8,16,0.72)] border border-[rgba(95,160,255,0.22)] px-3 py-3 text-[12px] font-mono-jarvis leading-relaxed text-[#9FC6FF] outline-none focus:border-[rgba(95,160,255,0.5)] resize-none"
                   data-testid="edit-source-textarea"
                 />
-                <div className="mt-3 flex items-center gap-2">
+                <div className="mt-2.5 flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -672,7 +764,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                         },
                       ]);
                     }}
-                    className="px-4 h-9 rounded-lg text-[13px] text-white"
+                    className="px-3.5 h-8 rounded-md text-[12px] text-white"
                     style={{ background: 'linear-gradient(180deg, #2F7CFF 0%, #1B55CC 100%)' }}
                     data-testid="edit-apply-button"
                   >
@@ -681,7 +773,7 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
                   <button
                     type="button"
                     onClick={() => setViewMode('preview')}
-                    className="px-4 h-9 rounded-lg text-[13px] text-[#8EA1BA] border border-[rgba(95,160,255,0.24)]"
+                    className="px-3.5 h-8 rounded-md text-[12px] text-[#9FB0C6] border border-[rgba(95,160,255,0.22)]"
                     data-testid="edit-cancel-button"
                   >
                     Cancel
@@ -691,16 +783,20 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
             )}
 
             {viewMode === 'inspect' && (
-              <div className="w-full h-full p-6 overflow-y-auto" data-testid="inspect-panel">
+              <div
+                className="w-full h-full p-4 overflow-y-auto rounded-xl"
+                style={{ background: 'rgba(4,10,20,0.6)', border: '1px solid rgba(95,160,255,0.16)' }}
+                data-testid="inspect-panel"
+              >
                 {artifact?.source ? (
                   <pre className="text-[12px] font-mono-jarvis leading-relaxed text-[#7FB4FF] whitespace-pre-wrap">
                     {artifact.source}
                   </pre>
                 ) : (
                   <div className="h-full flex items-center justify-center text-center">
-                    <div className="space-y-2 max-w-sm">
-                      <div className="text-sm text-[#8EA1BA]">No source to inspect</div>
-                      <p className="text-sm text-[#66738A] leading-relaxed">
+                    <div className="space-y-1.5 max-w-sm">
+                      <div className="text-sm text-[#9FB0C6]">No source to inspect</div>
+                      <p className="text-[13px] text-[#7C8DA6] leading-relaxed">
                         Source appears here once a run produces an artifact.
                       </p>
                     </div>
@@ -709,12 +805,6 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
               </div>
             )}
           </div>
-
-          {canEditArtifact && (
-            <div className="px-1 pt-2 text-xs text-[#66738A]" data-testid="edit-hint">
-              Verified. Use “Edit objective” or the composer to iterate on this web app.
-            </div>
-          )}
         </section>
       </div>
     </div>
