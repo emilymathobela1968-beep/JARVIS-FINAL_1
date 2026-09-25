@@ -129,6 +129,25 @@ Validation: `tsc --noEmit` clean, `vite build` clean, Stage 1 visually unchanged
   endpoints pass.
 
 
+### Phase 5 — Clean-background live overlays (DONE 2026-06)
+- Backgrounds locked and never edited: Home = `bg_a.png`, Builder = `bg_b.png`, Workstation = `bg_c.png`.
+  Temporary review label + bottom switcher removed. All UI is live React/CSS above the artwork.
+- `components/HomeScreen.tsx` (bg_a): live JARVIS logo top-left (10px/10px), live `JarvisMenu` MENU button
+  top-right (glass + blue glow), command panel centered in the lower third (`bottom-7vh`, max 720px) with
+  JARVIS badge, wordmark, status dot, prompt line, input, attach, mic, send. Nothing touches the radar circle.
+- `components/JarvisMenu.tsx`: 7 destinations; Home + Builder live, others honest "Soon / not connected yet".
+- `components/BuilderScreen.tsx` (bg_b): same logo position/size, build panel low (`bottom-5vh`, max 760px)
+  with placeholder "Describe the application you want to build...", live mic (honest notice) and Build button;
+  live app-type selector below — Web App enabled, Mobile App / AI Model disabled with "Soon".
+- `Stage2Workspace.tsx` (bg_c): background artwork layer added, glass top nav (Home, Computer, Developer,
+  Media, Builder active, Barehands, System + search), left pane 35% translucent (objective, edit objective,
+  timeline, refinement composer), right 65% preview with **Preview / Edit / Inspect / Full Screen**.
+  Edit = editable source + "Apply & re-render" (flips artifact back to unverified). Full Screen collapses the
+  left pane and shows Exit Full Screen.
+- Flow: Home collects the objective → Builder (confirm description + app type) → Build → Workstation.
+- Verified by browser automation: tip-calculator generated via SSE, rendered in the sandbox, flipped to
+  `verified` on real interaction; full screen, edit mode and mobile (390px) checked, zero horizontal overflow.
+
 ## Backlog
 ### P0 (next)
 - New JARVIS interface implementation + real execution architecture (awaiting user's visual reference).

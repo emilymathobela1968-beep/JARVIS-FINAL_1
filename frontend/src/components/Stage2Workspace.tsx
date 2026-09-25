@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   X,
 } from 'lucide-react';
+import workstationBg from '../assets/images/bg_c.png';
 
 interface Stage2WorkspaceProps {
   initialPrompt: string;
@@ -64,7 +65,8 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
   onReturnHome,
   onOpenIntake,
 }) => {
-  const [viewMode, setViewMode] = useState<'preview' | 'inspect'>('preview');
+  const [viewMode, setViewMode] = useState<'preview' | 'edit' | 'inspect'>('preview');
+  const [sourceDraft, setSourceDraft] = useState('');
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [agentState, setAgentState] = useState<AgentState>('WAITING');
   const [artifact, setArtifact] = useState<Artifact | null>(null);
@@ -325,9 +327,18 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
   );
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-[#050A14] text-[#F5F8FF] flex flex-col font-sans">
+    <div className="relative w-screen h-screen overflow-hidden text-[#F5F8FF] flex flex-col font-sans" data-testid="workstation-screen">
+      {/* Clean background artwork foundation — never edited, never covered by chrome. */}
+      <img
+        src={workstationBg}
+        alt=""
+        aria-hidden
+        draggable={false}
+        className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+      />
+
       {/* TOP NAVIGATION */}
-      <nav className="h-14 shrink-0 flex items-center justify-center relative border-b border-[rgba(47,124,255,0.14)]">
+      <nav className="relative z-10 h-14 shrink-0 flex items-center justify-center border-b border-[rgba(95,160,255,0.16)] bg-[rgba(4,10,20,0.62)] backdrop-blur-xl">
         <div className="flex items-center gap-1">
           {NAV.map(({ id, label, icon: Icon }) => {
             const active = id === 'builder';
@@ -366,11 +377,11 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
         </button>
       </nav>
 
-      <div className="flex-1 min-h-0 flex gap-4 p-4">
+      <div className="relative z-10 flex-1 min-h-0 flex gap-4 p-4">
         {/* LEFT — one open console surface */}
         {!isFullScreen && (
           <section
-            className="w-[36%] min-w-[380px] flex flex-col rounded-2xl bg-[#070E1C]/85 overflow-hidden"
+            className="w-[35%] min-w-[360px] flex flex-col rounded-2xl overflow-hidden border border-[rgba(95,160,255,0.2)] bg-[rgba(5,12,24,0.72)] backdrop-blur-2xl"
             data-testid="builder-left-pane"
           >
             <div className="px-6 pt-6 pb-4">
@@ -596,10 +607,21 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
         )}
 
         {/* RIGHT — preview workspace */}
-        <section className="flex-1 min-w-0 flex flex-col">
-          <div className="flex items-center justify-between gap-3 px-1 py-3">
-            <div className="flex items-center gap-2">
+        <section className="flex-1 min-w-0 flex flex-col" data-testid="workstation-preview-pane">
+          <div className="flex items-center justify-between gap-3 px-1 pb-3">
+            <div className="flex items-center gap-2.5">
               {toolButton('Preview', Eye, viewMode === 'preview', () => setViewMode('preview'), 'view-preview-button')}
+              {toolButton(
+                'Edit',
+                PenLine,
+                viewMode === 'edit',
+                () => {
+                  setSourceDraft(artifact?.source ?? '');
+                  setViewMode('edit');
+                },
+                'view-edit-button',
+                !artifact?.source
+              )}
               {toolButton('Inspect', Code2, viewMode === 'inspect', () => setViewMode('inspect'), 'view-inspect-button')}
               {toolButton(
                 isFullScreen ? 'Exit Full Screen' : 'Full Screen',
@@ -610,14 +632,62 @@ export const Stage2Workspace: React.FC<Stage2WorkspaceProps> = ({
               )}
             </div>
 
-            <div className="text-xs text-[#66738A] font-mono-jarvis pr-2" data-testid="artifact-status-chip">
+            <div className="text-xs text-[#7C8DA6] font-mono-jarvis pr-2" data-testid="artifact-status-chip">
               {artifact ? `status: ${artifact.status}` : 'status: none'}
             </div>
           </div>
 
-          <div className="flex-1 min-h-0 mt-1 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden rounded-2xl border border-[rgba(95,160,255,0.2)] bg-[rgba(5,12,24,0.66)] backdrop-blur-2xl">
             {viewMode === 'preview' && (
               <GeneratedArtifact artifact={artifact} streamedChars={streamedChars} onVerified={onVerified} />
+            )}
+
+            {viewMode === 'edit' && (
+              <div className="w-full h-full flex flex-col p-4" data-testid="edit-panel">
+                <textarea
+                  value={sourceDraft}
+                  onChange={(e) => setSourceDraft(e.target.value)}
+                  spellCheck={false}
+                  className="flex-1 min-h-0 w-full rounded-xl bg-[rgba(3,8,16,0.85)] border border-[rgba(95,160,255,0.28)] px-3 py-3 text-[12px] font-mono-jarvis leading-relaxed text-[#9FC6FF] outline-none focus:border-[rgba(95,160,255,0.6)] resize-none"
+                  data-testid="edit-source-textarea"
+                />
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setArtifact((prev) =>
+                        prev ? { ...prev, source: sourceDraft, status: 'unverified' } : prev
+                      );
+                      setAgentState('ACTION_REQUIRED');
+                      setViewMode('preview');
+                      pushTimeline([
+                        {
+                          id: nextId('e'),
+                          kind: 'event',
+                          text: 'Source edited manually',
+                          detail: 'Your edited source was re-rendered in the sandbox and needs re-verification.',
+                          evidence: `chars=${sourceDraft.length}`,
+                          status: 'completed',
+                          timestamp: now(),
+                        },
+                      ]);
+                    }}
+                    className="px-4 h-9 rounded-lg text-[13px] text-white"
+                    style={{ background: 'linear-gradient(180deg, #2F7CFF 0%, #1B55CC 100%)' }}
+                    data-testid="edit-apply-button"
+                  >
+                    Apply & re-render
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('preview')}
+                    className="px-4 h-9 rounded-lg text-[13px] text-[#8EA1BA] border border-[rgba(95,160,255,0.24)]"
+                    data-testid="edit-cancel-button"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             )}
 
             {viewMode === 'inspect' && (
